@@ -10,14 +10,14 @@ import { useState } from 'react'
 import { Responsable } from './components/Responsable'
 import { format } from 'date-fns'
 
-export function Ordenes() {
+export function NewOrderService() {
   const [date, setDate] = useState<Date>()
   return (
     <>
-      <div className='flex h-screen items-center justify-center'>
+      <div className='flex w-full justify-center'>
         <Card className='w-full max-w-3/4'>
           <CardHeader>
-            <CardTitle>Orden de Servicio</CardTitle>
+            <CardTitle> Nueva Orden de Servicio</CardTitle>
           </CardHeader>
           <CardContent>
             <div className='grid gap-2'>

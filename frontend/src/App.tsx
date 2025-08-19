@@ -1,4 +1,4 @@
-import { Ordenes } from './pages/OrdenesTrabajo'
+import { Ordenes } from './pages/OrdenesTrabajo/nuevo'
 import Layout from '@/pages/layout/layout'
 
 function App() {

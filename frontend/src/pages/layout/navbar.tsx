@@ -18,6 +18,7 @@ import {
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet'
 import type { MenuItem, Navbar1Props } from './types'
 import { ModeToggle } from '@/components/mode-toggle'
+import { Link, NavLink } from 'react-router-dom'
 
 export default function Navbar({
   logo = {
@@ -120,7 +121,7 @@ export default function Navbar({
             </div>
           </div>
           <div className='flex gap-2'>
-            <ModeToggle />
+            <ModeToggle /> {/* Cambio de tema Claro/Oscuro/Sistema */}
             <Button asChild variant='outline' size='sm'>
               <a href={auth.login.url}>{auth.login.title}</a>
             </Button>
@@ -192,11 +193,13 @@ const renderMenuItem = (item: MenuItem) => {
 
   return (
     <NavigationMenuItem key={item.title}>
-      <NavigationMenuLink
-        href={item.url}
-        className='group bg-background hover:bg-muted hover:text-accent-foreground inline-flex h-10 w-max items-center justify-center rounded-md px-4 py-2 text-sm font-medium transition-colors'
-      >
-        {item.title}
+      <NavigationMenuLink asChild>
+        <Link
+          to={item.url}
+          className='group bg-background hover:bg-muted hover:text-accent-foreground inline-flex h-10 w-max items-center justify-center rounded-md px-4 py-2 text-sm font-medium transition-colors'
+        >
+          {item.title}
+        </Link>
       </NavigationMenuLink>
     </NavigationMenuItem>
   )
@@ -227,9 +230,9 @@ const renderMobileMenuItem = (item: MenuItem) => {
 
 const SubMenuLink = ({ item }: { item: MenuItem }) => {
   return (
-    <a
+    <Link
       className='hover:bg-muted hover:text-accent-foreground flex w-96 flex-row gap-4 rounded-md p-3 leading-none no-underline transition-colors outline-none select-none'
-      href={item.url}
+      to={item.url}
     >
       <div className='text-foreground'>{item.icon}</div>
       <div>
@@ -238,6 +241,6 @@ const SubMenuLink = ({ item }: { item: MenuItem }) => {
           <p className='text-muted-foreground text-sm leading-snug'>{item.description}</p>
         )}
       </div>
-    </a>
+    </Link>
   )
 }

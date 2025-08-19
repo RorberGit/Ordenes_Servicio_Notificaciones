@@ -16,10 +16,12 @@ class OrdenesServicioGetAllView(APIView):
         # * Octener el objecto ordenes de servicio
         ordenservicio = OrdenesServicio.objects.filter(
             Parametros(request))
-        
+
         # * Serializar el objecto
         serializer = OrdenesServicioSerializar(
             ordenservicio, many=True)
         
+        print(serializer.data)
+
         # * Mostrar los resultados
         return Response(serializer.data, status=status.HTTP_200_OK)

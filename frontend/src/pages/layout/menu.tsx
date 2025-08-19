@@ -1,10 +1,10 @@
 import type { MenuItem } from './types'
-import { Bell, ClipboardList, PlusCircle, RefreshCw, Trash2 } from 'lucide-react'
+import { PlusCircle, RefreshCw, Trash2 } from 'lucide-react'
 
 export const menu: MenuItem[] = [
   {
     title: 'Inicio',
-    url: '#',
+    url: '/',
     description: 'Ir inicio del sitio',
   },
   {
@@ -14,8 +14,8 @@ export const menu: MenuItem[] = [
       {
         title: 'Nueva orden de servicio',
         description: 'Crear nuevo registro',
-        url: '#',
-        icon: <PlusCircle size={32} color='#1f28e5' />,
+        url: '/order',
+        icon: <PlusCircle size={32} color='#13186b' />,
       },
       {
         title: 'Actualizar orden de servicio',

@@ -9,7 +9,7 @@ import { useEffect } from 'react'
 //
 import { ThemeProvider } from '@/components/theme-provider'
 import { CardWithForm } from '@/pages/complementos/CardWithForm'
-import { Ordenes } from '@/pages/OrdenesTrabajo'
+import { Ordenes } from '@/pages/OrdenesTrabajo/nuevo'
 import { ModeToggle } from '@/components/mode-toggle'
 
 function App() {

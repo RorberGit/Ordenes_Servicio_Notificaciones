@@ -45,6 +45,9 @@ INSTALLED_APPS = [
     # apps
     "apps.ordenesdeservicio",
     "apps.notificaciones",
+    "apps.tiposdecontenido",
+    "apps.especialidades",
+    "apps.tiposderespuesta",
 ]
 
 MIDDLEWARE = [
