@@ -1,5 +1,5 @@
 import type { MenuItem } from './types'
-import { PlusCircle, RefreshCw, Trash2 } from 'lucide-react'
+import { PlusCircle, RefreshCw, View } from 'lucide-react'
 
 export const menu: MenuItem[] = [
   {
@@ -14,20 +14,20 @@ export const menu: MenuItem[] = [
       {
         title: 'Nueva orden de servicio',
         description: 'Crear nuevo registro',
-        url: '/order',
+        url: '/serviceorder/new',
         icon: <PlusCircle size={32} color='#13186b' />,
       },
       {
         title: 'Actualizar orden de servicio',
         description: 'Actualizar registro existente',
-        url: '#',
+        url: 'serviceorder/update',
         icon: <RefreshCw size={32} color='#F59E0B' />,
       },
       {
-        title: 'Eliminar orden de servicio',
-        description: 'Eliminar el registro seleccionando',
-        url: '#',
-        icon: <Trash2 size={32} color='#FF5733' />,
+        title: 'Ver ordenes de servicio',
+        description: 'Mostrar los registros existentes',
+        url: 'serviceorder/view',
+        icon: <View size={32} color='#FF5733' />,
       },
     ],
   },
@@ -38,20 +38,20 @@ export const menu: MenuItem[] = [
       {
         title: 'Nueva notificación',
         description: 'Crear nuevo registro',
-        url: '#',
+        url: 'notifications/new',
         icon: <PlusCircle size={32} color='#1f28e5' />,
       },
       {
         title: 'Actualizar notificación',
         description: 'Actualizar registro existente',
-        url: '#',
+        url: 'notifications/update',
         icon: <RefreshCw size={32} color='#F59E0B' />,
       },
       {
-        title: 'Eliminar notificación',
-        description: 'Eliminar el registro seleccionando',
-        url: '#',
-        icon: <Trash2 size={32} color='#FF5733' />,
+        title: 'Ver notificaciones',
+        description: 'Mostrar los registros existentes',
+        url: 'notifications/view',
+        icon: <View size={32} color='#FF5733' />,
       },
     ],
   },
