@@ -21,7 +21,7 @@ export function NewOrderService() {
           </CardHeader>
           <CardContent>
             <div className='grid gap-2'>
-              <Input type='number' placeholder='Número de Orden' />
+              <Input type='number' placeholder='Número de Orden' name='nos' />
               <Textarea placeholder='Descripción' />
               <Input type='text' placeholder='Usuario creador' />
               <Responsable />
