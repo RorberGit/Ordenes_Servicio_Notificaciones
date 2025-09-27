@@ -9,17 +9,44 @@ import { TextareaFormField } from '@/components/form-fields/TextareaFormField'
 import { DatePickerFormField } from '@/components/form-fields/DatePickerFormField'
 import { SelectFormField } from '@/components/form-fields/SelectFormField'
 import { useCreateRecord } from '@/hooks/useApiMutation'
-import { useApiQuery } from '@/hooks/useApiQuery'
 import { toast } from 'sonner'
-import type {
-  ServiceOrderResponse,
-  ServiceOrderPayload,
-  ApiError,
-  TiposContenidoResponse,
-  EspecialidadesResponse,
-} from '../types'
+import { useNavigate } from 'react-router-dom'
+
+// Tipo para la respuesta del API
+interface ServiceOrderResponse {
+  id: string
+  numero_orden: number
+  asunto: string
+  fecha_notificacion?: string
+  notificacion?: number
+  tipo_contenido: string
+  especialidad?: string
+  created_at: string
+  updated_at: string
+}
+
+// Tipo para los datos que se envían al API
+interface ServiceOrderPayload {
+  numero_orden: number
+  asunto: string
+  fecha_notificacion?: string
+  notificacion?: number
+  tipo_contenido: string
+  especialidad?: string
+}
+
+// Tipo para errores de la API
+interface ApiError {
+  response?: {
+    data?: {
+      message?: string
+    }
+  }
+}
 
 export default function FormNewOS() {
+  const navigate = useNavigate()
+
   const form = useForm<ZodSchemaTypeOS>({
     resolver: ZodResolverOS,
     defaultValues: {
@@ -32,33 +59,9 @@ export default function FormNewOS() {
     },
   })
 
-  // 1. Observa el valor del campo 'tipo_contenido'
-  const watchedContenido = form.watch('tipo_contenido')
-
-  // Hook para obtener los tipos de contenido desde la API
-  const {
-    data: tiposContenidoData,
-    isLoading: isLoadingTiposContenido,
-    error: tiposContenidoError,
-  } = useApiQuery<TiposContenidoResponse>({
-    url: '/tipos-contenido/getall/',
-    queryKey: ['tipos-contenido'],
-  })
-
-  // Hook para obtener las especialidades desde la API
-  const {
-    data: especialidadesData,
-    isLoading: isLoadingEspecialidades,
-    error: especialidadesError,
-  } = useApiQuery<EspecialidadesResponse>({
-    url: '/especialidades/getall/',
-    queryKey: ['especialidades'],
-    enabled: watchedContenido === 'Plano', // Solo cargar cuando sea necesario
-  })
-
   // Hook para crear la orden de servicio
   const createOrderMutation = useCreateRecord<ServiceOrderResponse, ServiceOrderPayload>(
-    '/ordenes/create/',
+    '/services-orders',
     {
       onSuccess: data => {
         toast.success('Orden de servicio creada exitosamente', {
@@ -79,6 +82,9 @@ export default function FormNewOS() {
     },
   )
 
+  // 1. Observa el valor del campo 'tipo_contenido'
+  const watchedContenido = form.watch('tipo_contenido')
+
   // 2. Efecto para resetear 'especialidad' si 'contenido' cambia y no es 'plano'
   useEffect(() => {
     if (watchedContenido !== 'plano') {
@@ -88,49 +94,17 @@ export default function FormNewOS() {
     }
   }, [watchedContenido, form]) // Dependencias del efecto
 
-  // 3. Efecto para mostrar errores de carga de datos
-  useEffect(() => {
-    if (tiposContenidoError) {
-      toast.error('Error al cargar tipos de contenido', {
-        description: 'Se usarán valores por defecto. Verifique su conexión.',
-      })
-    }
-  }, [tiposContenidoError])
-
-  useEffect(() => {
-    if (especialidadesError && watchedContenido === 'plano') {
-      toast.error('Error al cargar especialidades', {
-        description: 'Se usarán valores por defecto. Verifique su conexión.',
-      })
-    }
-  }, [especialidadesError, watchedContenido])
-
   function onSubmit(values: ZodSchemaTypeOS) {
-    // Encontrar el valor UUID del campo Tipo Contenido a partir de su nombre
-    const UUIDTipoContenido = tiposContenidoData?.data.find(
-      item => item.nombre === values.tipo_contenido,
-    )
-    console.log('find', UUIDTipoContenido)
-
-    // Si tipo de contenido es igual a Plano, encontrar el valor UUID del campo Especialidad a partir de su nombre
-    // condición ternaria
-    const UUIDEspecialidad =
-      values.tipo_contenido === 'Plano'
-        ? especialidadesData?.data.find(item => item.nombre === values.especialidad)
-        : null
-
-    console.log('especialidad', UUIDEspecialidad)
-
     // Preparar los datos para enviar al API
     const dataToSend: ServiceOrderPayload = {
       numero_orden: values.numero_orden,
       asunto: values.asunto,
-      tipo_contenido: UUIDTipoContenido?.id || '',
+      tipo_contenido: values.tipo_contenido,
       // Convertir la fecha a formato ISO string si existe
       fecha_notificacion: values.fecha_notificacion?.toISOString(),
       // Incluir campos opcionales solo si tienen valor
       ...(values.notificacion && { notificacion: values.notificacion }),
-      especialidad: UUIDEspecialidad?.id,
+      ...(values.especialidad && { especialidad: values.especialidad }),
     }
 
     // Enviar los datos al API
@@ -179,46 +153,35 @@ export default function FormNewOS() {
               type='number'
             />
 
-            {/* Tipo de Contenido */}
+            {/* Contenido */}
             <SelectFormField
               control={form.control}
               name='tipo_contenido'
               label='Contenido'
-              placeholder={
-                isLoadingTiposContenido
-                  ? 'Cargando tipos de contenido...'
-                  : tiposContenidoError
-                    ? 'Error al cargar tipos de contenido'
-                    : 'Seleccione un tipo de contenido'
-              }
-              options={
-                tiposContenidoData?.data?.map(tipo => ({
-                  value: tipo.nombre,
-                  label: tipo.nombre,
-                })) || []
-              }
+              placeholder='Seleccione un tipo de contenido'
+              options={[
+                { value: 'plano', label: 'Plano' },
+                { value: 'ft', label: 'FT (Ficha Técnica)' },
+                { value: 'sloc', label: 'SL/OC' },
+                { value: 'otros', label: 'Otros' },
+              ]}
             />
 
             {/* Especialidad */}
             {/* Renderizado Condicional: Solo muestra Especialidad si contenido es 'plano' */}
-            {watchedContenido === 'Plano' && (
+            {watchedContenido === 'plano' && (
               <SelectFormField
                 control={form.control}
                 name='especialidad'
                 label='Especialidad'
-                placeholder={
-                  isLoadingEspecialidades
-                    ? 'Cargando especialidades...'
-                    : especialidadesError
-                      ? 'Error al cargar especialidades'
-                      : 'Selecciona la especialidad de la OS'
-                }
-                options={
-                  especialidadesData?.data?.map(especialidad => ({
-                    value: especialidad.nombre,
-                    label: especialidad.nombre,
-                  })) || []
-                }
+                placeholder='Selecciona la especialidad de la OS'
+                options={[
+                  { value: 'arquitetura', label: 'Arquitectura' },
+                  { value: 'estructura', label: 'Estructura' },
+                  { value: 'mecanica', label: 'Mecánica' },
+                  { value: 'electricidad', label: 'Electricidad' },
+                  { value: 'hidrosanitaria', label: 'Hidrosanitaria' },
+                ]}
               />
             )}
 
