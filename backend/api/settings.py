@@ -39,18 +39,31 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
 
+    'rest_framework',
+
+    'corsheaders',
+
     # template
     "template",
 
     # apps
+    "apps.comun",
     "apps.ordenesdeservicio",
     "apps.notificaciones",
     "apps.tiposdecontenido",
     "apps.especialidades",
     "apps.tiposderespuesta",
+    "apps.proyecto",
+    "apps.usuarios",
+]
+
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:5173",
+    "http://127.0.0.1:5173",
 ]
 
 MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -69,6 +82,7 @@ TEMPLATES = [
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
+                "django.template.context_processors.debug",
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
@@ -138,7 +152,72 @@ USE_TZ = True
 
 STATIC_URL = 'static/'
 
+# os.path.join(BASE_DIR, 'staticfiles')
+STATIC_ROOT = 'static/'
+
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+""" LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+        },
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['console'],
+            'level': 'DEBUG',
+            'propagate': True,
+        },
+        'rest_framework': {
+            'handlers': ['console'],
+            'level': 'ERROR',
+            'propagate': True,
+        },
+    }
+} """
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'simple': {
+            'format': '[{levelname}] {message}',
+            'style': '{',
+        },
+    },
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+            'formatter': 'simple',
+        },
+    },
+    'loggers': {
+        # ⚙️ Logger principal de Django (más reservado)
+        'django': {
+            'handlers': ['console'],
+            # muestra solo warnings y errores del framework
+            'level': 'WARNING',
+            'propagate': False,
+        },
+
+        # ⚙️ Logger específico para tu app de órdenes de servicio
+        'apps.ordenesdeservicio': {
+            'handlers': ['console'],
+            # detallado en dev, silencioso en prod
+            'level': 'INFO' if DEBUG else 'ERROR',
+            'propagate': False,
+        },
+
+        # ⚙️ Logger raíz (aplica a todas las demás apps)
+        '': {
+            'handlers': ['console'],
+            'level': 'WARNING' if DEBUG else 'ERROR',
+        },
+    },
+}

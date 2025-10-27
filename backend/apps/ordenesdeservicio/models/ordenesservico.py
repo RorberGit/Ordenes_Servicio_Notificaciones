@@ -1,9 +1,6 @@
 # Importa el módulo de modelos de Django
 from django.db import models
 
-# Importa el modelo de usuario predeterminado de Django
-from django.contrib.auth.models import User
-
 from template.models import FieldsTemplate
 
 
@@ -20,11 +17,10 @@ class OrdenesServicio(FieldsTemplate):
         estado de la orden (pendiente, en proceso, completado)
     """
     # Número de la orden de servicio
-    numero_orden = models.CharField(
-        max_length=20,
+    numero_orden = models.IntegerField(
         unique=True,
         verbose_name="Número de Orden",
-        help_text="Número único de la orden de servicio"
+        help_text="Número único de la orden de servicio (auto-incremental)"
     )
 
     # Asunto de la orden de servicio
@@ -34,19 +30,8 @@ class OrdenesServicio(FieldsTemplate):
         help_text="Descripción breve del servicio solicitado"
     )
 
-    # Responsable de la orden de servicio (usuario que crea la orden)
-    responsable = models.ForeignKey(
-        User,
-        blank=True,
-        null=True,
-        on_delete=models.CASCADE,
-        verbose_name="Responsable",
-        help_text="Usuario responsable de la orden de servicio"
-    )
-
     # Fecha de notificación de la orden de servicio
     fecha_notificacion = models.DateField(
-        auto_now_add=True,
         blank=True,
         null=True,
         verbose_name="Fecha de Notificación",
@@ -74,29 +59,30 @@ class OrdenesServicio(FieldsTemplate):
     )
 
     # Especialidad relacionada con la orden de servicio (opcional)
-    especialidad = models.ForeignKey(
+    especialidad = models.ManyToManyField(
         'especialidades.Especialidad',
-        on_delete=models.SET_NULL,
-        null=True,
+        related_name="ordenes",
         blank=True,
         verbose_name="Especialidad",
         help_text="Especialidad relacionada con la orden de servicio"
     )
 
-    # Estado de la orden de servicio (pendiente, en proceso, completado)
-    ESTADO_CHOICES = [
-        ('pendiente',
-         'Pendiente'),
-        ('en_proceso',
-         'En Proceso'),
-        ('completado',
-         'Completado'),
-    ]
+    # Proyecto relacionado con la orden de servicio (1:n)
+    proyecto = models.ForeignKey(
+        'proyecto.Proyecto',
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        verbose_name="Proyecto",
+        help_text="Proyecto al que pertenece esta orden de servicio"
+    )
 
-    estado = models.CharField(
-        max_length=20,
-        choices=ESTADO_CHOICES,
-        default='pendiente',
+    # Estado de la orden de servicio
+    estado = models.ForeignKey(
+        'comun.Estado',
+        on_delete=models.DO_NOTHING,
+        null=True,
+        blank=True,
         verbose_name="Estado",
         help_text="Estado actual de la orden de servicio"
     )
@@ -110,3 +96,62 @@ class OrdenesServicio(FieldsTemplate):
 
     def __str__(self):
         return f"Orden #{self.numero_orden} - {self.asunto}"
+
+
+class HistoricoOS(FieldsTemplate):
+    """Modelo de Histórico de Órdenes de Servicio
+    Este modelo registra el historial de estados de las órdenes de servicio.
+    """
+    # Relación con la orden de servicio
+    orden_servicio = models.ForeignKey(
+        OrdenesServicio,
+        on_delete=models.CASCADE,
+        related_name='historicos',
+        verbose_name="Orden de Servicio",
+        help_text="Orden de servicio a la que pertenece este registro histórico"
+    )
+
+    # Estado de la orden de servicio
+    estado = models.ForeignKey(
+        'comun.Estado',
+        on_delete=models.DO_NOTHING,
+        null=True,
+        blank=True,
+        verbose_name="Estado",
+        help_text="Estado actual de la orden de servicio"
+    )
+
+    # Fecha del cambio de estado
+    fecha = models.DateTimeField(
+        auto_now_add=True,
+        verbose_name="Fecha",
+        help_text="Fecha y hora en que se registró este estado"
+    )
+
+    # Usuario que creó este registro histórico
+    user = models.ForeignKey(
+        'usuarios.Usuarios',
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        verbose_name="Usuario",
+        help_text="Usuario que registró este cambio de estado"
+    )
+
+    # Resumen del cambio histórico
+    resumen = models.TextField(
+        blank=True,
+        null=True,
+        verbose_name="Resumen",
+        help_text="Resumen del cambio histórico"
+    )
+
+    # Metadatos del modelo
+    class Meta:
+        verbose_name = "Histórico OS"
+        verbose_name_plural = "Históricos OS"
+        # Ordenar por fecha descendente
+        ordering = ['-fecha']
+
+    def __str__(self):
+        return f"{self.orden_servicio.numero_orden} - {self.estado} - {self.fecha}"

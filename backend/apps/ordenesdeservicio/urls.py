@@ -4,6 +4,7 @@ from apps.ordenesdeservicio.views.create import OrdenesServicioCreateView
 from apps.ordenesdeservicio.views.update import OrdenesServicioUpdateView
 from apps.ordenesdeservicio.views.getone import OrdenesServicioGetOneView
 from apps.ordenesdeservicio.views.getall import OrdenesServicioGetAllView
+from apps.ordenesdeservicio.views.getall_paginated import OrdenesServicioGetAllPaginatedView
 
 urlpatterns = [
     path("create/",
@@ -12,7 +13,9 @@ urlpatterns = [
          OrdenesServicioUpdateView.as_view(), name="Actualizar registro"),
     path("getone",
          OrdenesServicioGetOneView.as_view(), name="Obtener un registro"),
-    path("getall",
+    path("getall/",
          OrdenesServicioGetAllView.as_view(), name="Obtener todos los registros"),
+    path("getall-paginated/", OrdenesServicioGetAllPaginatedView.as_view(),
+         name="Todo con paginación")
 
 ]
