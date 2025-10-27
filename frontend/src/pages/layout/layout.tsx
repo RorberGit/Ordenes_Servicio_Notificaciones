@@ -2,26 +2,49 @@ import { menu } from './menu'
 import Navbar from './navbar'
 import { Outlet } from 'react-router-dom'
 import almest from '../../assets/almest.jpg'
+import React from 'react'
 
-const logo = {
-  url: 'https://www.almest.com',
-  src: almest,
-  alt: 'logo',
-  title: '',
+// ... (Tipado de LogoProps y definición de logo se mantienen igual)
+interface LogoProps {
+  url: string
+  src: string
+  alt: string
+  title: string
 }
 
-export default function Layout() {
+const logo: LogoProps = {
+  url: 'https://www.hra.cu',
+  src: almest,
+  alt: 'logo',
+  title: 'ALMEST',
+}
+
+const Layout: React.FC = () => {
   return (
-    <div className='bg-background text-foreground flex min-h-screen flex-col'>
-      <header className='flex h-16 flex-shrink-0 items-center shadow-sm'>
+    // CONTENEDOR PRINCIPAL:
+    // flex min-h-screen flex-col: Esto hace que el contenedor ocupe el 100% de la altura.
+    <div className='bg-background text-foreground flex min-h-screen flex-col antialiased'>
+      {/* HEADER: Fijo y siempre visible (no se desplaza) */}
+      <header className='bg-background sticky top-0 z-50 flex h-16 flex-shrink-0 items-center border-b shadow-md'>
         <Navbar logo={logo} menu={menu} />
       </header>
-      <main className='flex flex-1 items-center justify-center px-4 py-8'>
+
+      {/* MAIN: Contenido principal (donde debe ir el scroll) */}
+      {/* CLAVES:
+         1. flex-1: Hace que el main ocupe todo el espacio restante.
+         2. overflow-y-auto: Habilita la barra de desplazamiento vertical solo para este contenedor.
+         3. p-4 sm:p-8: Se mantiene el padding interno para el contenido.
+      */}
+      <main className='flex flex-1 flex-col overflow-y-auto p-4 sm:p-8'>
         <Outlet />
       </main>
-      <footer className='bg-muted text-muted-foreground flex h-12 flex-shrink-0 items-center justify-center py-4 text-center text-xs'>
-        Pie
+
+      {/* FOOTER: Fijo y siempre visible (no se desplaza) */}
+      <footer className='bg-muted text-muted-foreground flex h-12 flex-shrink-0 items-center justify-center border-t text-center text-xs'>
+        <p>&copy; {new Date().getFullYear()} Nombre de la Aplicación | Pie de página estándar.</p>
       </footer>
     </div>
   )
 }
+
+export default Layout

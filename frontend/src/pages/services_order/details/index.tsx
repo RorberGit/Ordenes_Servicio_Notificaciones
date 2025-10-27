@@ -1,0 +1,151 @@
+import { useParams } from 'react-router-dom'
+import { Skeleton } from '@/components/ui/skeleton'
+import { useApiQuery } from '@/hooks/useApiQuery'
+import { useNavigate } from 'react-router-dom'
+import type { ServiceOrder } from '../types'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
+import { ArrowLeft } from 'lucide-react'
+import ButtonEjecutar from './components/button-ejecutar'
+import HistoricosComp from './components/historico'
+import { Badge } from '@/components/ui/badge'
+import ButtonCompletar from './components/button-completar'
+import ButtonCancelar from './components/button-cancelar'
+import TiempoTrascurrido from './components/tiempo-trascurrido'
+
+export default function ServiceOrderDetails() {
+  const { id } = useParams<{ id: string }>()
+
+  const navigate = useNavigate()
+
+  const {
+    data: serviceOrderData,
+    isLoading,
+    error,
+    refetch,
+  } = useApiQuery<ServiceOrder>({
+    url: `/ordenes/getone?id=${id}`,
+  })
+
+  const serviceOrder = serviceOrderData?.data
+
+  // * Constante para el control del Historico
+  const historicos = serviceOrder?.historicos ?? []
+
+  if (isLoading) {
+    return (
+      <Card className='mx-auto w-[800px]'>
+        <CardHeader>
+          <Skeleton className='h-8 w-64' />
+        </CardHeader>
+        <CardContent>
+          <div className='space-y-4'>
+            {Array.from({ length: 6 }).map((_, i) => (
+              <Skeleton key={i} className='h-6 w-full' />
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+    )
+  }
+
+  if (error || !serviceOrder) {
+    return (
+      <Card className='mx-auto w-[800px]'>
+        <CardHeader>
+          <CardTitle>Error al cargar los detalles de la orden de servicio</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className='text-red-600'>
+            No se pudieron cargar los detalles de la orden de servicio.
+          </p>
+          <Button onClick={() => refetch()} className='mt-4'>
+            Reintentar
+          </Button>
+        </CardContent>
+      </Card>
+    )
+  }
+
+  const ClassDiv = 'flex flex-row items-center gap-4'
+  const ClassLabel = 'text-sm font-medium text-gray-700 dark:text-gray-300'
+
+  return (
+    <Card className='mx-auto w-[800px]'>
+      <CardHeader>
+        <div className='flex items-center gap-4'>
+          <Button variant='outline' size='sm' onClick={() => navigate('/serviceorder/view')}>
+            <ArrowLeft className='mr-2 h-4 w-4' />
+            Volver
+          </Button>
+          <CardTitle>Detalles de la Orden de Servicio # {serviceOrder.numero_orden}</CardTitle>
+        </div>
+      </CardHeader>
+      <CardContent className='space-y-6'>
+        {serviceOrder?.fecha_notificacion && (
+          <TiempoTrascurrido fecha_notificacion={serviceOrder.fecha_notificacion} />
+        )}
+        <div className='grid grid-cols-1 gap-4'>
+          <div className={ClassDiv}>
+            <label className={ClassLabel}>Número de Orden:</label>
+            <p className='text-lg font-semibold'>{serviceOrder.numero_orden}</p>
+          </div>
+          <div className={ClassDiv}>
+            <label className={ClassLabel}>Asunto</label>
+            <p>{serviceOrder.asunto}</p>
+          </div>
+          {serviceOrder?.fecha_notificacion && (
+            <div className={ClassDiv}>
+              <label className={ClassLabel}>Fecha de Notificación</label>
+              <span>{new Date(serviceOrder.fecha_notificacion).toLocaleDateString('es-ES')}</span>
+            </div>
+          )}
+          {serviceOrder?.notificacion_read && (
+            <div className={ClassDiv}>
+              <label className={ClassLabel}>Notificación:</label>
+              <p>
+                `${serviceOrder?.notificacion_read.numero_notificacion} - $
+                {serviceOrder?.notificacion_read.asunto}`
+              </p>
+            </div>
+          )}
+          <div className={ClassDiv}>
+            <label className={ClassLabel}>Tipo de Contenido:</label>
+            <p>{serviceOrder?.tipo_contenido_read?.nombre}</p>
+          </div>
+          {serviceOrder?.especialidad_read && serviceOrder?.especialidad_read.length > 0 && (
+            <div className={ClassDiv}>
+              <label className={ClassLabel}>Especialidades:</label>
+              <div className='flex flex-wrap items-center gap-2'>
+                {serviceOrder?.especialidad_read.map((esp, index) => (
+                  <Badge key={index} variant='outline' className='text-sm'>
+                    {esp.nombre}
+                  </Badge>
+                ))}
+              </div>
+            </div>
+          )}
+          {serviceOrder?.proyecto_read && (
+            <div className={ClassDiv}>
+              <label className={ClassLabel}>Proyecto</label>
+              <span>{serviceOrder?.proyecto_read}</span>
+            </div>
+          )}
+        </div>
+
+        <div className='flex justify-end gap-4'>
+          {serviceOrder?.estado_read === 'Creada' && <ButtonEjecutar id={id} refetch={refetch} />}
+          {serviceOrder?.estado_read === 'En Progreso' && (
+            <ButtonCompletar id={id} refetch={refetch} />
+          )}
+          {serviceOrder.estado_read !== 'Completada' &&
+            serviceOrder.estado_read !== 'Cancelada' && (
+              <ButtonCancelar id={id} refetch={refetch} />
+            )}
+        </div>
+        {/* Componente historico */}
+        <HistoricosComp historicos={historicos} />
+      </CardContent>
+    </Card>
+  )
+}

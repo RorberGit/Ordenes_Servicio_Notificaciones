@@ -1,4 +1,4 @@
-import { Book, Menu, Sunset, Trees, Zap } from 'lucide-react'
+import { Menu } from 'lucide-react'
 
 import {
   Accordion,
@@ -18,58 +18,55 @@ import {
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet'
 import type { MenuItem, Navbar1Props } from './types'
 import { ModeToggle } from '@/components/mode-toggle'
-import { Link, NavLink } from 'react-router-dom'
+import { Link } from 'react-router-dom'
+import { useAuth } from '@/context/AuthContext'
+import { useProject } from '@/context/ProjectContext'
 
 export default function Navbar({
-  logo = {
-    url: 'https://www.shadcnblocks.com',
-    src: 'https://shadcnblocks.com/images/block/logos/shadcnblockscom-icon.svg',
-    alt: 'logo',
-    title: 'Shadcnblocks.com',
-  },
-  menu = [
-    {
-      title: 'Products',
-      url: '#',
-      items: [
-        {
-          title: 'Blogggg',
-          description: 'The latest industry news, updates, and info',
-          icon: <Book className='size-5 shrink-0' />,
-          url: '#',
-        },
-      ],
-    },
-  ],
+  logo,
+  menu,
   auth = {
-    login: { title: 'Login', url: '#' },
-    signup: { title: 'Sign up', url: '#' },
+    login: { title: 'Iniciar sesión', url: '#' },
+    signup: { title: 'Cerrar sesión', url: '#' },
   },
 }: Navbar1Props) {
+  const { isAuthenticated, user } = useAuth() // * Context del usuario
+  const { activeProject } = useProject() // * Context del proyecto
+
   return (
     <section className='w-full p-4'>
       {/* Desktop Menu */}
       <nav className='hidden justify-between lg:flex'>
         <div className='flex flex-grow items-center gap-6'>
           {/* Logo */}
-          <a href={logo.url} className='flex items-center gap-2'>
-            <img src={logo.src} className='max-h-8' alt={logo.alt} />
-            <span className='text-lg font-semibold tracking-tighter'>{logo.title}</span>
+          <a href={logo?.url} className='flex items-center gap-2'>
+            <img src={logo?.src} className='max-h-8' alt={logo?.alt} />
+            <span className='text-lg font-semibold tracking-tighter'>{logo?.title}</span>
           </a>
+          {/* Menu */}
           <div className='flex items-center'>
             <NavigationMenu>
-              <NavigationMenuList>{menu.map(item => renderMenuItem(item))}</NavigationMenuList>
+              <NavigationMenuList>{menu?.map(item => renderMenuItem(item))}</NavigationMenuList>
             </NavigationMenu>
           </div>
         </div>
         <div className='flex gap-2'>
           <ModeToggle /> {/* Cambio de tema Claro/Oscuro/Sistema */}
-          <Button asChild variant='outline' size='sm'>
-            <a href={auth.login.url}>{auth.login.title}</a>
-          </Button>
-          <Button asChild size='sm'>
-            <a href={auth.signup.url}>{auth.signup.title}</a>
-          </Button>
+          <div className='grid content-center justify-items-center'>
+            <span className='text-sm'>{user?.fullName}</span>
+            {activeProject && <span className='text-[12px]'>Proyecto activo: {activeProject}</span>}
+          </div>
+          {/*Si el usuario a iniciado sesión
+          ocultar botón de inicio de sesión y mostrar cerrar sesión*/}
+          {!isAuthenticated ? (
+            <Button asChild variant='outline' size='sm'>
+              <a href={auth.login.url}>{auth.login.title}</a>
+            </Button>
+          ) : (
+            <Button asChild size='sm'>
+              <a href={auth.signup.url}>{auth.signup.title}</a>
+            </Button>
+          )}
         </div>
       </nav>
 
@@ -77,8 +74,8 @@ export default function Navbar({
       <div className='block lg:hidden'>
         <div className='flex items-center justify-between'>
           {/* Logo */}
-          <a href={logo.url} className='flex items-center gap-2'>
-            <img src={logo.src} className='max-h-8' alt={logo.alt} />
+          <a href={logo?.url} className='flex items-center gap-2'>
+            <img src={logo?.src} className='max-h-8' alt={logo?.alt} />
           </a>
           <Sheet>
             <SheetTrigger asChild>
@@ -89,23 +86,28 @@ export default function Navbar({
             <SheetContent className='overflow-y-auto'>
               <SheetHeader>
                 <SheetTitle>
-                  <a href={logo.url} className='flex items-center gap-2'>
-                    <img src={logo.src} className='max-h-8' alt={logo.alt} />
+                  <a href={logo?.url} className='flex items-center gap-2'>
+                    <img src={logo?.src} className='max-h-8' alt={logo?.alt} />
                   </a>
                 </SheetTitle>
               </SheetHeader>
               <div className='flex flex-col gap-6 p-4'>
                 <Accordion type='single' collapsible className='flex w-full flex-col gap-4'>
-                  {menu.map(item => renderMobileMenuItem(item))}
+                  {menu?.map(item => renderMobileMenuItem(item))}
                 </Accordion>
 
                 <div className='flex flex-col gap-3'>
-                  <Button asChild variant='outline'>
-                    <a href={auth.login.url}>{auth.login.title}</a>
-                  </Button>
-                  <Button asChild>
-                    <a href={auth.signup.url}>{auth.signup.title}</a>
-                  </Button>
+                  {/*Si el usuario a iniciado sesión
+                  ocultar botón de inicio de sesión y mostrar cerrar sesión*/}
+                  {!isAuthenticated ? (
+                    <Button asChild variant='outline'>
+                      <a href={auth.login.url}>{auth.login.title}</a>
+                    </Button>
+                  ) : (
+                    <Button asChild>
+                      <a href={auth.signup.url}>{auth.signup.title}</a>
+                    </Button>
+                  )}
                 </div>
               </div>
             </SheetContent>
@@ -117,7 +119,7 @@ export default function Navbar({
 }
 
 const renderMenuItem = (item: MenuItem) => {
-  if (item.items) {
+  if (item.items && Array.isArray(item.items)) {
     return (
       <NavigationMenuItem key={item.title}>
         <NavigationMenuTrigger>{item.title}</NavigationMenuTrigger>
@@ -147,7 +149,7 @@ const renderMenuItem = (item: MenuItem) => {
 }
 
 const renderMobileMenuItem = (item: MenuItem) => {
-  if (item.items) {
+  if (item.items && Array.isArray(item.items)) {
     return (
       <AccordionItem key={item.title} value={item.title} className='border-b-0'>
         <AccordionTrigger className='text-md py-0 font-semibold hover:no-underline'>
@@ -172,7 +174,7 @@ const renderMobileMenuItem = (item: MenuItem) => {
 const SubMenuLink = ({ item }: { item: MenuItem }) => {
   return (
     <Link
-      className='hover:bg-muted hover:text-accent-foreground flex w-96 flex-row gap-4 rounded-md p-3 leading-none no-underline transition-colors outline-none select-none'
+      className='hover:bg-muted hover:text-accent-foreground flex w-96 flex-row gap-2 rounded-md p-1.5 leading-none no-underline transition-colors outline-none select-none'
       to={item.url}
     >
       <div className='text-foreground'>{item.icon}</div>

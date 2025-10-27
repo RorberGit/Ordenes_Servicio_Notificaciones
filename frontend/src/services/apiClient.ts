@@ -1,3 +1,4 @@
+import { logger } from '@/lib/logger'
 import axios from 'axios'
 import type { AxiosInstance, AxiosResponse } from 'axios'
 
@@ -27,7 +28,7 @@ apiClient.interceptors.request.use(
 // Interceptor para manejar errores de respuesta
 apiClient.interceptors.response.use(
   (response: AxiosResponse) => {
-    console.log('Respuesta =>', response)
+    logger.info('Response apiClient =>', response)
     // Manejar respuestas exitosas
     return response
   },

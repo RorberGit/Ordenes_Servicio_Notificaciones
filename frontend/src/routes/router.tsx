@@ -1,38 +1,53 @@
-import DashBoard from '@/pages/dashboard'
-import Layout from '@/pages/layout/layout'
-import { NotFound } from '@/pages/not_found/NoFound'
+import DashBoard from '../pages/dashboard/index'
+import Layout from '../pages/layout/layout'
+import { NotFound } from '../pages/NoFound'
 import { createBrowserRouter } from 'react-router-dom'
-import UpdateServiceOrder from '@/pages/services_order/update'
-import ViewServiceOrder from '@/pages/services_order/view'
-import FormNewOS from '@/pages/services_order/new'
-import NotificationNew from '@/pages/notifications/new'
-import NotificationUpdate from '@/pages/notifications/update'
-import NotificationView from '@/pages/notifications/view'
+import ViewServiceOrder from '../pages/services_order/view/index'
+import ServiceOrderDetails from '../pages/services_order/details/index'
+import FormNewOS from '../pages/services_order/new/index'
+import NotificationNew from '../pages/notifications/new/index'
+import NotificationView from '../pages/notifications/view/index'
+import { ProtectedRoute } from './ProtectedRoute'
+import Login from '@/pages/login'
+import { Unauthorized } from '@/pages/unauthorized'
+import NotificationDetails from '@/pages/notifications/details/index'
 
 export const router = createBrowserRouter([
   {
     path: '/',
     element: <Layout />,
-    errorElement: <NotFound />,
+    /*  errorElement: <NotFound />, */
     children: [
       {
         index: true,
         element: <DashBoard />,
       },
       {
+        path: 'login',
+        element: <Login />,
+      },
+      {
+        path: 'unauthorized',
+        element: <Unauthorized />,
+      },
+      {
         path: 'serviceorder',
         children: [
           {
             path: 'new',
-            element: <FormNewOS />,
-          },
-          {
-            path: 'update',
-            element: <UpdateServiceOrder />,
+            element: (
+              <ProtectedRoute>
+                <FormNewOS />
+              </ProtectedRoute>
+            ),
           },
           {
             path: 'view',
             element: <ViewServiceOrder />,
+          },
+          {
+            path: 'details/:id',
+            element: <ServiceOrderDetails />,
           },
         ],
       },
@@ -44,12 +59,12 @@ export const router = createBrowserRouter([
             element: <NotificationNew />,
           },
           {
-            path: 'update',
-            element: <NotificationUpdate />,
-          },
-          {
             path: 'view',
             element: <NotificationView />,
+          },
+          {
+            path: 'details/:id',
+            element: <NotificationDetails />,
           },
         ],
       },

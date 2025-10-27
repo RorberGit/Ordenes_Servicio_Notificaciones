@@ -1,54 +1,36 @@
-# React + TypeScript + Vite
+# Ordenes de Servicio
+- Acceso a la API
+  . Nuevos registros http://localhost:8000/ordenes/create/
+  . Actualizar registros http://localhost:8000/ordenes/update/
+  . Listar todos los registros http://localhost:8000/ordenes/getall/
+  . Listar todos los registros con paginación http://localhost:8000/ordenes/getall_paginated/
+- Formulario Nuevo regisrto
+  . Número de Orden de Servicio, Asunto y Fecha de Notificación, son valores suministrados por el usurio
+  . Número de Orden es un Input, requerido, con valores con 4 o más digitos
+  . Asunto es un TextArea, requerido
+  . Fecha de Notificación es un DatePicker, requerido, valor inicial la fecha actual 
+  . Notificación que responde, Contenido y Especialidad, sus valores se optinen desde la API
+  . Notificación que responde es un select, su valor se escoje si la OS responde una notificación, si no se deja en blanco
+  . Contenido es un select y es requerido
+  . Especiliadad solo se muestra si Tipo de Contenido su valor es Plano y se convierte en requerida
+- Vista de Ordenes de servicio
+  . En menú ver ordenes de servicio se mostraran todos los registros de ordenes de servicio
+  . Se usara el componente tabla de shadcn/ui
+  . Con la llamad a la api para la paginación, mostrando los botones de anterior y siguiente página
+  . Se mostrara la página actual y el total de registros
+  . Con los botones de eliminar y actualizar en las acciones de cada registro de la tabla
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+# Tipos de Contenido
+  - Acceso API
+  . Listar todos los registros http://localhost:8000/tipos-contenido/getall
 
-Currently, two official plugins are available:
+# Especialidades
+  - Acceso API
+  . Listar todos los registros http://localhost:8000/especialidades/getall
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
-
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default tseslint.config({
-  extends: [
-    // Remove ...tseslint.configs.recommended and replace with this
-    ...tseslint.configs.recommendedTypeChecked,
-    // Alternatively, use this for stricter rules
-    ...tseslint.configs.strictTypeChecked,
-    // Optionally, add this for stylistic rules
-    ...tseslint.configs.stylisticTypeChecked,
-  ],
-  languageOptions: {
-    // other options...
-    parserOptions: {
-      project: ['./tsconfig.node.json', './tsconfig.app.json'],
-      tsconfigRootDir: import.meta.dirname,
-    },
-  },
-})
-```
-
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
-
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default tseslint.config({
-  plugins: {
-    // Add the react-x and react-dom plugins
-    'react-x': reactX,
-    'react-dom': reactDom,
-  },
-  rules: {
-    // other rules...
-    // Enable its recommended typescript rules
-    ...reactX.configs['recommended-typescript'].rules,
-    ...reactDom.configs.recommended.rules,
-  },
-})
-```
+# Notificaciones
+- Acceso a la API
+  . Nuevos registros http://localhost:8000/notificaciones/create/
+  . Actualizar registros http://localhost:8000/notificaciones/update/
+  . Listar todos los registros http://localhost:8000/notificaciones/getall/
+  . Listar todos los registros con paginación http://localhost:8000/notificaciones/getall_paginated/

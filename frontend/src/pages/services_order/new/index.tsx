@@ -3,61 +3,49 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { useForm } from 'react-hook-form'
 import { ZodResolverOS, type ZodSchemaTypeOS } from '../lib/ZodSchema'
 import { Form } from '@/components/ui/form'
-import { useEffect } from 'react'
-import { InputFormField } from '@/components/form-fields/InputFormField'
 import { TextareaFormField } from '@/components/form-fields/TextareaFormField'
-import { DatePickerFormField } from '@/components/form-fields/DatePickerFormField'
 import { SelectFormField } from '@/components/form-fields/SelectFormField'
+import { AutocompleteFormField } from '@/components/form-fields/AutocompleteFormField'
+import { MultiSelectFormField } from '@/components/form-fields/MultiSelectFormField'
 import { useCreateRecord } from '@/hooks/useApiMutation'
-import { useApiQuery } from '@/hooks/useApiQuery'
 import { toast } from 'sonner'
-import type {
-  ServiceOrderResponse,
-  ServiceOrderPayload,
-  ApiError,
-  TiposContenidoResponse,
-  EspecialidadesResponse,
-} from '../types'
+import type { ServiceOrder, ServiceOrderPayload } from '../types'
+import { useAuth } from '@/context/AuthContext'
+import { useNavigate } from 'react-router-dom'
+import { useProject } from '@/context/ProjectContext'
+import { useQueyServicesOrder } from '../hooks/use-QueryServicesOrder'
+import type { ApiError } from '@/pages/types/types-comun'
 
 export default function FormNewOS() {
+  const navigate = useNavigate()
+  // Obtener usuario
+  const { user } = useAuth()
+  const { activeProject } = useProject()
+
   const form = useForm<ZodSchemaTypeOS>({
     resolver: ZodResolverOS,
     defaultValues: {
-      numero_orden: undefined,
       asunto: '',
-      fecha_notificacion: undefined,
       notificacion: undefined,
       tipo_contenido: '',
-      especialidad: undefined,
+      especialidad: [],
     },
   })
 
-  // 1. Observa el valor del campo 'tipo_contenido'
-  const watchedContenido = form.watch('tipo_contenido')
-
-  // Hook para obtener los tipos de contenido desde la API
   const {
-    data: tiposContenidoData,
-    isLoading: isLoadingTiposContenido,
-    error: tiposContenidoError,
-  } = useApiQuery<TiposContenidoResponse>({
-    url: '/tipos-contenido/getall/',
-    queryKey: ['tipos-contenido'],
-  })
-
-  // Hook para obtener las especialidades desde la API
-  const {
-    data: especialidadesData,
-    isLoading: isLoadingEspecialidades,
-    error: especialidadesError,
-  } = useApiQuery<EspecialidadesResponse>({
-    url: '/especialidades/getall/',
-    queryKey: ['especialidades'],
-    enabled: watchedContenido === 'Plano', // Solo cargar cuando sea necesario
-  })
+    tiposContenidoData,
+    isLoadingTiposContenido,
+    tiposContenidoError,
+    especialidadesData,
+    isLoadingEspecialidades,
+    especialidadesError,
+    notificacionesData,
+    isLoadingNotificaciones,
+    notificacionesError,
+  } = useQueyServicesOrder(form)
 
   // Hook para crear la orden de servicio
-  const createOrderMutation = useCreateRecord<ServiceOrderResponse, ServiceOrderPayload>(
+  const createOrderMutation = useCreateRecord<ServiceOrder, ServiceOrderPayload>(
     '/ordenes/create/',
     {
       onSuccess: data => {
@@ -66,7 +54,9 @@ export default function FormNewOS() {
         })
         form.reset()
         // Opcional: redirigir a la vista de la orden creada o al listado
-        // navigate('/services-orders')
+        setTimeout(() => {
+          navigate('/serviceorder/view', { replace: true, state: { refresh: true } })
+        }, 500)
       },
       onError: error => {
         console.error('Error al crear la orden de servicio:', error)
@@ -79,58 +69,20 @@ export default function FormNewOS() {
     },
   )
 
-  // 2. Efecto para resetear 'especialidad' si 'contenido' cambia y no es 'plano'
-  useEffect(() => {
-    if (watchedContenido !== 'plano') {
-      // Resetea el valor de 'especialidad' y borra sus errores
-      form.setValue('especialidad', undefined, { shouldValidate: true })
-      form.clearErrors('especialidad')
-    }
-  }, [watchedContenido, form]) // Dependencias del efecto
+  // Observa el valor del campo 'tipo_contenido'
+  const watchedContenido = form.watch('tipo_contenido')
 
-  // 3. Efecto para mostrar errores de carga de datos
-  useEffect(() => {
-    if (tiposContenidoError) {
-      toast.error('Error al cargar tipos de contenido', {
-        description: 'Se usarán valores por defecto. Verifique su conexión.',
-      })
-    }
-  }, [tiposContenidoError])
-
-  useEffect(() => {
-    if (especialidadesError && watchedContenido === 'plano') {
-      toast.error('Error al cargar especialidades', {
-        description: 'Se usarán valores por defecto. Verifique su conexión.',
-      })
-    }
-  }, [especialidadesError, watchedContenido])
-
-  function onSubmit(values: ZodSchemaTypeOS) {
-    // Encontrar el valor UUID del campo Tipo Contenido a partir de su nombre
-    const UUIDTipoContenido = tiposContenidoData?.data.find(
-      item => item.nombre === values.tipo_contenido,
-    )
-    console.log('find', UUIDTipoContenido)
-
-    // Si tipo de contenido es igual a Plano, encontrar el valor UUID del campo Especialidad a partir de su nombre
-    // condición ternaria
-    const UUIDEspecialidad =
-      values.tipo_contenido === 'Plano'
-        ? especialidadesData?.data.find(item => item.nombre === values.especialidad)
-        : null
-
-    console.log('especialidad', UUIDEspecialidad)
-
+  // Función onSubmit del formulario
+  const onSubmit = (values: ZodSchemaTypeOS) => {
     // Preparar los datos para enviar al API
     const dataToSend: ServiceOrderPayload = {
-      numero_orden: values.numero_orden,
+      estado: 1,
       asunto: values.asunto,
-      tipo_contenido: UUIDTipoContenido?.id || '',
-      // Convertir la fecha a formato ISO string si existe
-      fecha_notificacion: values.fecha_notificacion?.toISOString(),
-      // Incluir campos opcionales solo si tienen valor
-      ...(values.notificacion && { notificacion: values.notificacion }),
-      especialidad: UUIDEspecialidad?.id,
+      tipo_contenido: values.tipo_contenido || '',
+      ...(values.notificacion && { notificacion: values.notificacion || '' }),
+      ...(values.especialidad && { especialidad: values.especialidad || [] }),
+      username: user?.userName,
+      proyecto: activeProject,
     }
 
     // Enviar los datos al API
@@ -145,15 +97,6 @@ export default function FormNewOS() {
       <CardContent>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className='space-y-4'>
-            {/* Número de Orden de Servicio */}
-            <InputFormField
-              control={form.control}
-              name='numero_orden'
-              label='Número de Orden de Servicio'
-              placeholder='Ej: 12345'
-              type='number'
-            />
-
             {/* Asunto */}
             <TextareaFormField
               control={form.control}
@@ -163,33 +106,41 @@ export default function FormNewOS() {
               rows={4}
             />
 
-            {/* Fecha de Notificación */}
-            <DatePickerFormField
-              control={form.control}
-              name='fecha_notificacion'
-              label='Fecha de Notificación'
-            />
-
-            {/* Notificación que responde */}
-            <InputFormField
-              control={form.control}
-              name='notificacion'
-              label='Notificación que responde'
-              placeholder='Número de notificación al que responde esta OS'
-              type='number'
-            />
+            {/* Notificación que responde - Solo mostrar si hay notificaciones disponibles */}
+            {notificacionesData?.data && notificacionesData.data.length > 0 && (
+              <AutocompleteFormField
+                control={form.control}
+                name='notificacion'
+                label='Notificación que responde'
+                placeholder={
+                  isLoadingNotificaciones
+                    ? 'Cargando notificaciones...'
+                    : notificacionesError
+                      ? 'Error al cargar notificaciones'
+                      : 'Seleccione una notificación (opcional)'
+                }
+                options={notificacionesData.data.map(notificacion => ({
+                  value: notificacion.id,
+                  label: `${notificacion.numero_notificacion} - ${
+                    notificacion?.asunto.length > 50
+                      ? notificacion.asunto.slice(0, 50) + '...'
+                      : notificacion.asunto
+                  }`,
+                }))}
+              />
+            )}
 
             {/* Tipo de Contenido */}
             <SelectFormField
               control={form.control}
               name='tipo_contenido'
-              label='Contenido'
+              label='Tipo de Contenido'
               placeholder={
                 isLoadingTiposContenido
-                  ? 'Cargando tipos de contenido...'
+                  ? 'Cargando Tipos de Contenido...'
                   : tiposContenidoError
-                    ? 'Error al cargar tipos de contenido'
-                    : 'Seleccione un tipo de contenido'
+                    ? 'Error al cargar Tipos de Contenido'
+                    : 'Seleccione un Tipo de Contenido'
               }
               options={
                 tiposContenidoData?.data?.map(tipo => ({
@@ -202,7 +153,7 @@ export default function FormNewOS() {
             {/* Especialidad */}
             {/* Renderizado Condicional: Solo muestra Especialidad si contenido es 'plano' */}
             {watchedContenido === 'Plano' && (
-              <SelectFormField
+              <MultiSelectFormField
                 control={form.control}
                 name='especialidad'
                 label='Especialidad'
@@ -211,11 +162,11 @@ export default function FormNewOS() {
                     ? 'Cargando especialidades...'
                     : especialidadesError
                       ? 'Error al cargar especialidades'
-                      : 'Selecciona la especialidad de la OS'
+                      : 'Selecciona las especialidades de la OS'
                 }
                 options={
                   especialidadesData?.data?.map(especialidad => ({
-                    value: especialidad.nombre,
+                    value: especialidad.id,
                     label: especialidad.nombre,
                   })) || []
                 }
@@ -230,9 +181,6 @@ export default function FormNewOS() {
                 disabled={createOrderMutation.isPending}
               >
                 {createOrderMutation.isPending ? 'Enviando...' : 'Aceptar'}
-              </Button>
-              <Button type='button' variant='destructive' onClick={() => form.reset()}>
-                Cancelar
               </Button>
             </div>
           </form>

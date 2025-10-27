@@ -10,6 +10,7 @@ interface InputFormFieldProps<TFormSchema extends FieldValues> {
   label: string
   placeholder?: string
   type?: React.HTMLInputTypeAttribute // Usa el tipo de HTML para mayor precisión
+  disabled?: boolean
 }
 
 export function InputFormField<TFormSchema extends FieldValues>({
@@ -18,6 +19,7 @@ export function InputFormField<TFormSchema extends FieldValues>({
   label,
   placeholder,
   type = 'text',
+  disabled = false,
 }: InputFormFieldProps<TFormSchema>) {
   return (
     <FormField
@@ -33,6 +35,7 @@ export function InputFormField<TFormSchema extends FieldValues>({
               placeholder={placeholder || label}
               {...field}
               value={(field.value as string) ?? ''}
+              disabled={disabled}
             />
           </FormControl>
           <FormMessage />

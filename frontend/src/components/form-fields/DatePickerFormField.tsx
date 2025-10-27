@@ -13,6 +13,7 @@ interface DatePickerFormFieldProps<TFormSchema extends FieldValues> {
   control: Control<TFormSchema>
   name: FieldPath<TFormSchema>
   label: string
+  disabled?: boolean
   // Puedes añadir más props si necesitas personalizar el calendario (ej. minDate, maxDate)
 }
 
@@ -20,6 +21,7 @@ export function DatePickerFormField<TFormSchema extends FieldValues>({
   control,
   name,
   label,
+  disabled = false,
 }: DatePickerFormFieldProps<TFormSchema>) {
   return (
     <FormField
@@ -37,6 +39,7 @@ export function DatePickerFormField<TFormSchema extends FieldValues>({
                     'w-[240px] pl-3 text-left font-normal',
                     !field.value && 'text-muted-foreground',
                   )}
+                  disabled={disabled}
                 >
                   {/* Asegúrate de que field.value sea de tipo Date o undefined para format */}
                   {field.value && typeof field.value === 'object' && 'getTime' in field.value ? (
@@ -48,7 +51,7 @@ export function DatePickerFormField<TFormSchema extends FieldValues>({
                 </Button>
               </FormControl>
             </PopoverTrigger>
-            <PopoverContent className='w-auto p-0' align='start'>
+            <PopoverContent sideOffset={-40} className='w-auto p-0' align='start'>
               <Calendar
                 mode='single'
                 selected={field.value as Date | undefined} // Cast para asegurar el tipo correcto para 'selected'
