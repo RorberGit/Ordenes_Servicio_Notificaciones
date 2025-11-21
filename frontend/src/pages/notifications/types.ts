@@ -8,7 +8,7 @@ interface Notification {
   fecha_notificacion: string
   lleva_respuesta?: boolean
   especialidad_read?: EspecialidadesResponse
-  proyecto_read: string
+  obra_read: string
   numero_orden_respuesta_read?: string
   tipo_respuesta_read?: TipoDeRespuesta
   historicos?: HistoricosResponse
@@ -28,7 +28,7 @@ interface NotificationPayload {
   tipo_respuesta?: string
   username: string | undefined
   estado?: number | undefined
-  proyecto?: string | null
+  obra?: string | null
 }
 
 // Tipo para los tipos de respuesta desde la API

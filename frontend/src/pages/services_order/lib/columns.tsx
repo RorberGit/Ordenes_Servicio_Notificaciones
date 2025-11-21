@@ -2,10 +2,11 @@ import { Button } from '@/components/ui/button'
 import { type ColumnDef } from '@tanstack/react-table'
 import { ArrowUpDown, ArrowUp, ArrowDown, View } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
-import type { ServiceOrderResponse } from '../types'
 import { getStatusBadgeClasses } from '@/pages/utils/status-class-utils'
+import type { ServiceOrder } from '../types'
+import dayjs from 'dayjs'
 
-export const getColumns = (navigate: (path: string) => void): ColumnDef<ServiceOrderResponse>[] => [
+export const getColumns = (navigate: (path: string) => void): ColumnDef<ServiceOrder>[] => [
   {
     accessorKey: 'numero_orden',
     header: ({ column }) => (
@@ -47,14 +48,6 @@ export const getColumns = (navigate: (path: string) => void): ColumnDef<ServiceO
     cell: ({ row }) => <div className='max-w-xs truncate'>{row.getValue('asunto')}</div>,
   },
   {
-    accessorKey: 'tipo_contenido_read.nombre',
-    header: 'Tipo de Contenido',
-    cell: ({ row }) => {
-      const tipoContenido = row.original.tipo_contenido_read
-      return tipoContenido ? tipoContenido.nombre : '-'
-    },
-  },
-  {
     accessorKey: 'fecha_notificacion',
     header: ({ column }) => (
       <Button
@@ -74,14 +67,14 @@ export const getColumns = (navigate: (path: string) => void): ColumnDef<ServiceO
     ),
     cell: ({ row }) => {
       const date = row.getValue('fecha_notificacion') as string
-      return date ? new Date(date).toLocaleDateString('es-ES') : '-'
+      return date ? dayjs(date).format('DD-MM-YYYY') : '-'
     },
   },
   {
-    accessorKey: 'estado_read',
+    accessorKey: 'estado_nombre',
     header: 'Estado',
     cell: ({ row }) => {
-      const estado = row.getValue('estado_read') as string
+      const estado = row.getValue('estado_nombre') as string
       return (
         <Badge variant='outline' className={getStatusBadgeClasses(estado)}>
           {estado}

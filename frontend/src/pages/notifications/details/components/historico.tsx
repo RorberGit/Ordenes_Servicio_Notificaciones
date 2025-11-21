@@ -1,6 +1,7 @@
 import { getStatusBadgeClasses } from '@/pages/utils/status-class-utils'
 import { Badge } from '@/components/ui/badge'
 import type { HistoricosResponse } from '@/pages/types/types-comun'
+import dayjs from 'dayjs'
 
 interface HistoricosProps {
   historicos: HistoricosResponse
@@ -10,7 +11,7 @@ export default function HistoricosComp({ historicos }: HistoricosProps) {
   return (
     <div className='space-y-2 pt-4'>
       <h3 className='boder-b pb-2 text-xl font-semibold text-gray-900 dark:text-white'>
-        Histórico Órdenes de Servicio
+        Histórico de Notificaciones
       </h3>
       <div className='grid grid-cols-7 gap-4 border-b pb-2 text-sm font-bold dark:text-gray-300'>
         <span className='col-span-1'>Estado</span>
@@ -36,7 +37,7 @@ export default function HistoricosComp({ historicos }: HistoricosProps) {
           )}
           {/* Columna 2 */}
           <p className='col-span-1 items-center text-sm dark:text-gray-300'>
-            {item.fecha ? new Date(item.fecha).toLocaleDateString('es-ES') : '-'}
+            {item.fecha ? dayjs(item.fecha).format('DD/MM/YYYY') : '-'}
           </p>
           {/* Columna 3 */}
           <p className='col-span-3 text-sm dark:text-gray-300'>

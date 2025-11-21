@@ -9,6 +9,7 @@ import type { NotificationsResponse } from '@/pages/notifications/types'
 
 export function useQueyServicesOrder(form: UseFormReturn<ZodSchemaTypeOS>) {
   const watchedContenido = form.watch('tipo_contenido')
+  const watchedLlevaRespuesta = form.watch('lleva_respuesta') as boolean
 
   // * API Tipo Contenido
   const {
@@ -20,7 +21,18 @@ export function useQueyServicesOrder(form: UseFormReturn<ZodSchemaTypeOS>) {
     queryKey: ['tipos-contenido'],
   })
 
-  // * API Especialidades
+  // * Query para obtener notificaciones
+  const {
+    data: notificacionesData,
+    isLoading: isLoadingNotificaciones,
+    error: notificacionesError,
+  } = useApiQuery<NotificationsResponse>({
+    url: '/notificaciones/getall/',
+    queryKey: ['notificaciones'],
+    enabled: watchedLlevaRespuesta,
+  })
+
+  // * Hook para obtener las especialidades
   const {
     data: especialidadesData,
     isLoading: isLoadingEspecialidades,
@@ -31,15 +43,14 @@ export function useQueyServicesOrder(form: UseFormReturn<ZodSchemaTypeOS>) {
     enabled: watchedContenido === 'Plano',
   })
 
-  // * Query para obtener notificaciones
-  const {
-    data: notificacionesData,
-    isLoading: isLoadingNotificaciones,
-    error: notificacionesError,
-  } = useApiQuery<NotificationsResponse>({
-    url: '/notificaciones/getall/',
-    queryKey: ['notificaciones'],
-  })
+  useEffect(() => {
+    if (!watchedLlevaRespuesta) {
+      form.setValue('notificacion', '', { shouldValidate: true })
+      form.clearErrors('notificacion')
+      form.setValue('especialidad', [], { shouldValidate: true })
+      form.clearErrors('especialidad')
+    }
+  }, [watchedLlevaRespuesta, form])
 
   useEffect(() => {
     if (watchedContenido !== 'Plano') {
@@ -57,12 +68,12 @@ export function useQueyServicesOrder(form: UseFormReturn<ZodSchemaTypeOS>) {
   }, [tiposContenidoError])
 
   useEffect(() => {
-    if (especialidadesError && watchedContenido === 'Plano') {
+    if (especialidadesError && watchedLlevaRespuesta && watchedContenido === 'Plano') {
       toast.error('Error al cargar especialidades', {
         description: 'Se usarán valores por defecto. Verifique su conexión.',
       })
     }
-  }, [especialidadesError, watchedContenido])
+  }, [especialidadesError, watchedLlevaRespuesta, watchedContenido])
 
   return {
     tiposContenidoData,

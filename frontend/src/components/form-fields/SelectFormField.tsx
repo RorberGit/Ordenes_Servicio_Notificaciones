@@ -21,6 +21,7 @@ interface SelectFormFieldProps<TFormSchema extends FieldValues> {
   label: string
   placeholder?: string
   options: SelectOption[]
+  onValueChange?: (value: string) => void
 }
 
 export function SelectFormField<TFormSchema extends FieldValues>({
@@ -29,6 +30,7 @@ export function SelectFormField<TFormSchema extends FieldValues>({
   label,
   placeholder,
   options,
+  onValueChange,
 }: SelectFormFieldProps<TFormSchema>) {
   return (
     <FormField
@@ -37,7 +39,13 @@ export function SelectFormField<TFormSchema extends FieldValues>({
       render={({ field }) => (
         <FormItem>
           <FormLabel>{label}</FormLabel>
-          <Select onValueChange={field.onChange} value={(field.value as string) ?? ''}>
+          <Select
+            onValueChange={value => {
+              field.onChange(value)
+              if (onValueChange) onValueChange(value)
+            }}
+            value={(field.value as string) ?? ''}
+          >
             <FormControl>
               <SelectTrigger>
                 <SelectValue placeholder={placeholder || `Seleccione un ${label.toLowerCase()}`} />

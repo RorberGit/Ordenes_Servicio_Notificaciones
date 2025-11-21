@@ -45,7 +45,7 @@ export default function ButtonCompletar({ id, refetch }: ButtonCompletarProps) {
     (event: React.FormEvent) => {
       event.preventDefault()
 
-      if (!user?.userName) {
+      if (!user?.username) {
         toast.error('Usuario no autenticado')
         return
       }
@@ -55,11 +55,11 @@ export default function ButtonCompletar({ id, refetch }: ButtonCompletarProps) {
         historico: {
           estado: 5,
           resumen: 'Orden de servicio Completada',
-          username: user.userName,
+          username: user.username,
         },
       })
     },
-    [user?.userName, updateMutation],
+    [user?.username, updateMutation],
   )
 
   return (

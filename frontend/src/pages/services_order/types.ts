@@ -1,4 +1,3 @@
-import type { Notification } from '../notifications/types'
 import type { EspecialidadesResponse, HistoricosResponse } from '../types/types-comun'
 
 interface ServiceOrder {
@@ -6,14 +5,12 @@ interface ServiceOrder {
   numero_orden: number
   asunto: string
   fecha_notificacion?: string
-  notificacion_read?: Notification
-  tipo_contenido_read: TipoContenido
-  especialidad_read?: EspecialidadesResponse
+  notificacion_id_nombre?: string
+  tipo_contenido_nombre: string
+  especialidades?: EspecialidadesResponse
   historicos?: HistoricosResponse
-  proyecto_read: string
-  estado_read?: string
-  created_at: string
-  updated_at: string
+  obra_nombre: string
+  estado_nombre?: string
 }
 
 type ServicesOrderResponse = ServiceOrder[]
@@ -27,7 +24,7 @@ interface ServiceOrderPayload {
   especialidad?: string[]
   username: string | undefined
   estado?: number
-  proyecto?: string | null
+  obra?: string | null
 }
 
 // Tipo para la data de los tipos de contenido desde la API

@@ -2,6 +2,9 @@ import { Badge } from '@/components/ui/badge'
 import { getStatusBadgeClasses } from '@/pages/utils/status-class-utils'
 import dayjs from 'dayjs'
 import 'dayjs/locale/es'
+import utc from 'dayjs/plugin/utc'
+
+dayjs.extend(utc)
 
 dayjs.locale('es')
 
@@ -11,7 +14,7 @@ interface TiempoTranscurridoProps {
 
 export default function TiempoTranscurrido({ fecha_notificacion }: TiempoTranscurridoProps) {
   const notificationDate = dayjs(fecha_notificacion)
-  const now = dayjs()
+  const now = dayjs().utc(true)
 
   const diffDays = now.diff(notificationDate, 'day')
   const BadgeClass = diffDays < 10 ? (diffDays >= 7 ? 'Casi Vencida' : 'default') : 'Vencida'

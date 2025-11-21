@@ -1,17 +1,17 @@
 // src/components/ProtectedRoute.tsx (Versión Final y Completa)
 
-import React, { type ReactNode } from 'react'
+import React from 'react'
 import { Navigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { type Role } from '../types/auth' // Importa el tipo Role
+import { Outlet } from 'react-router-dom'
 
 interface ProtectedRouteProps {
-  children: ReactNode
   // Opcional: Array de roles que tienen permitido acceder
   allowedRoles?: Role[]
 }
 
-export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, allowedRoles }) => {
+export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ allowedRoles }) => {
   const { isAuthenticated, user } = useAuth()
 
   // ------------------------------------
@@ -26,7 +26,7 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, allowe
   // ------------------------------------
   if (allowedRoles && allowedRoles.length > 0) {
     // El usuario debe estar presente si isAuthenticated es true
-    const userRoles = user!.roles
+    const userRoles = user!.rol
 
     // Verificamos si al menos uno de los roles del usuario está en allowedRoles
     const isAuthorized = allowedRoles.some(role => userRoles.includes(role))
@@ -39,5 +39,5 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, allowe
   }
 
   // Si pasa ambos chequeos (Autenticación y Autorización), renderiza la ruta
-  return <>{children}</>
+  return <Outlet />
 }

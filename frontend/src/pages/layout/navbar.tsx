@@ -18,20 +18,21 @@ import {
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet'
 import type { MenuItem, Navbar1Props } from './types'
 import { ModeToggle } from '@/components/mode-toggle'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '@/context/AuthContext'
-import { useProject } from '@/context/ProjectContext'
+import { useWork } from '@/context/WorkContext'
 
 export default function Navbar({
   logo,
   menu,
   auth = {
-    login: { title: 'Iniciar sesión', url: '#' },
+    login: { title: 'Iniciar sesión', url: '/login' },
     signup: { title: 'Cerrar sesión', url: '#' },
   },
 }: Navbar1Props) {
-  const { isAuthenticated, user } = useAuth() // * Context del usuario
-  const { activeProject } = useProject() // * Context del proyecto
+  const { isAuthenticated, user, logout } = useAuth() // * Context del usuario
+  const { activeWork } = useWork() // * Context del obra
+  const navigate = useNavigate()
 
   return (
     <section className='w-full p-4'>
@@ -39,10 +40,12 @@ export default function Navbar({
       <nav className='hidden justify-between lg:flex'>
         <div className='flex flex-grow items-center gap-6'>
           {/* Logo */}
-          <a href={logo?.url} className='flex items-center gap-2'>
-            <img src={logo?.src} className='max-h-8' alt={logo?.alt} />
-            <span className='text-lg font-semibold tracking-tighter'>{logo?.title}</span>
-          </a>
+          {logo && (
+            <a href={logo?.url} className='flex items-center gap-2'>
+              <img src={logo?.src} className='max-h-8' alt={logo?.alt} />
+              <span className='text-lg font-semibold tracking-tighter'>{logo?.title}</span>
+            </a>
+          )}
           {/* Menu */}
           <div className='flex items-center'>
             <NavigationMenu>
@@ -53,18 +56,24 @@ export default function Navbar({
         <div className='flex gap-2'>
           <ModeToggle /> {/* Cambio de tema Claro/Oscuro/Sistema */}
           <div className='grid content-center justify-items-center'>
-            <span className='text-sm'>{user?.fullName}</span>
-            {activeProject && <span className='text-[12px]'>Proyecto activo: {activeProject}</span>}
+            <span className='text-sm'>{user?.fullname}</span>
+            {activeWork && <span className='text-[12px]'>Obra activa: {activeWork}</span>}
           </div>
           {/*Si el usuario a iniciado sesión
           ocultar botón de inicio de sesión y mostrar cerrar sesión*/}
           {!isAuthenticated ? (
-            <Button asChild variant='outline' size='sm'>
-              <a href={auth.login.url}>{auth.login.title}</a>
+            <Button variant={'outline'} size='sm' onClick={() => navigate(auth.login.url)}>
+              {auth.login.title}
             </Button>
           ) : (
-            <Button asChild size='sm'>
-              <a href={auth.signup.url}>{auth.signup.title}</a>
+            <Button
+              size='sm'
+              onClick={() => {
+                logout()
+                navigate(auth.login.url)
+              }}
+            >
+              {auth.signup.title}
             </Button>
           )}
         </div>

@@ -64,7 +64,7 @@ export default function ButtonEjecutar({ id, refetch }: ButtonEjecutarProps) {
 
   const handleExecute = useCallback(
     (data: ExecuteFormData) => {
-      if (!user?.userName) {
+      if (!user?.username) {
         toast.error('Usuario no autenticado')
         return
       }
@@ -75,13 +75,13 @@ export default function ButtonEjecutar({ id, refetch }: ButtonEjecutarProps) {
         historico: {
           estado: 2,
           resumen: 'Orden de servicio iniciada',
-          username: user.userName,
+          username: user.username,
         },
       }
 
       updateMutation.mutate(payload)
     },
-    [user?.userName, updateMutation],
+    [user?.username, updateMutation],
   )
 
   return (

@@ -1,15 +1,42 @@
-export type Role = 'Administrador' | 'Editor' | 'Lector' | string
+export type Role = 'Administrador' | 'A.Juridico' | 'Especialistas' | string
 
+export interface Tokens {
+  access_token: string
+  refresh_token: string
+}
+
+export interface ObraPermitida {
+  permisos_id: string
+  obra_nombre: string
+  tipo_permiso: 'lectura' | 'escritura'
+}
+
+export interface UserContext {
+  username: string
+  fullname: string
+  obra_principal: string
+  email: string
+  rol: string
+  obras_permitidas?: string[]
+}
 export interface UserData {
-  userName: string
-  fullName: string
-  projectName: string
-  roles: Role[]
+  username: string
+  fullname: string
+  obra_principal_nombre: string
+  email: string
+  rol_nombre: Role
+  obras_permitidas?: {
+    id: string
+    created_at: string
+    updated_at: string
+    nombre: string
+    descripcion: string
+  }[]
 }
 
 export interface AuthContextType {
-  user: UserData | null
+  user: UserContext | null
   isAuthenticated: boolean
-  login: (data: UserData) => void
+  login: (userData: UserData, Tokens: Tokens) => void
   logout: () => void
 }

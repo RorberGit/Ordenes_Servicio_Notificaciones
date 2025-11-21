@@ -12,11 +12,14 @@ import { Badge } from '@/components/ui/badge'
 import ButtonCompletar from './components/button-completar'
 import ButtonCancelar from './components/button-cancelar'
 import TiempoTrascurrido from './components/tiempo-trascurrido'
+import dayjs from 'dayjs'
+import { useAuth } from '@/context/AuthContext'
 
 export default function ServiceOrderDetails() {
   const { id } = useParams<{ id: string }>()
 
   const navigate = useNavigate()
+  const { user } = useAuth()
 
   const {
     data: serviceOrderData,
@@ -74,7 +77,13 @@ export default function ServiceOrderDetails() {
     <Card className='mx-auto w-[800px]'>
       <CardHeader>
         <div className='flex items-center gap-4'>
-          <Button variant='outline' size='sm' onClick={() => navigate('/serviceorder/view')}>
+          <Button
+            variant='outline'
+            size='sm'
+            onClick={() =>
+              navigate('/serviceorder/view', { replace: true, state: { refresh: true } })
+            }
+          >
             <ArrowLeft className='mr-2 h-4 w-4' />
             Volver
           </Button>
@@ -82,42 +91,51 @@ export default function ServiceOrderDetails() {
         </div>
       </CardHeader>
       <CardContent className='space-y-6'>
+        {/* Tiempo transcurrido desde la Fecha notificación */}
         {serviceOrder?.fecha_notificacion && (
-          <TiempoTrascurrido fecha_notificacion={serviceOrder.fecha_notificacion} />
+          <TiempoTrascurrido
+            fecha_notificacion={serviceOrder.fecha_notificacion}
+            estado_nombre={serviceOrder.estado_nombre}
+          />
         )}
         <div className='grid grid-cols-1 gap-4'>
+          {/* Número de Orden */}
           <div className={ClassDiv}>
             <label className={ClassLabel}>Número de Orden:</label>
             <p className='text-lg font-semibold'>{serviceOrder.numero_orden}</p>
           </div>
+          {/* Asunto */}
           <div className={ClassDiv}>
             <label className={ClassLabel}>Asunto</label>
             <p>{serviceOrder.asunto}</p>
           </div>
+          {/* Fecha de notificación */}
           {serviceOrder?.fecha_notificacion && (
             <div className={ClassDiv}>
               <label className={ClassLabel}>Fecha de Notificación</label>
-              <span>{new Date(serviceOrder.fecha_notificacion).toLocaleDateString('es-ES')}</span>
+              <span>{dayjs(serviceOrder.fecha_notificacion).format('DD/MM/YYYY')}</span>
             </div>
           )}
-          {serviceOrder?.notificacion_read && (
+          {/* Notificación que responde Id - Nombre */}
+          {serviceOrder?.notificacion_id_nombre && (
             <div className={ClassDiv}>
               <label className={ClassLabel}>Notificación:</label>
-              <p>
-                `${serviceOrder?.notificacion_read.numero_notificacion} - $
-                {serviceOrder?.notificacion_read.asunto}`
-              </p>
+              <p>{serviceOrder?.notificacion_id_nombre}</p>
             </div>
           )}
-          <div className={ClassDiv}>
-            <label className={ClassLabel}>Tipo de Contenido:</label>
-            <p>{serviceOrder?.tipo_contenido_read?.nombre}</p>
-          </div>
-          {serviceOrder?.especialidad_read && serviceOrder?.especialidad_read.length > 0 && (
+          {/* Tipo de contenido */}
+          {serviceOrder?.tipo_contenido_nombre && (
+            <div className={ClassDiv}>
+              <label className={ClassLabel}>Tipo de Contenido:</label>
+              <p>{serviceOrder?.tipo_contenido_nombre}</p>
+            </div>
+          )}
+          {/* Especialidades */}
+          {serviceOrder?.especialidades && serviceOrder?.especialidades.length > 0 && (
             <div className={ClassDiv}>
               <label className={ClassLabel}>Especialidades:</label>
               <div className='flex flex-wrap items-center gap-2'>
-                {serviceOrder?.especialidad_read.map((esp, index) => (
+                {serviceOrder?.especialidades.map((esp, index) => (
                   <Badge key={index} variant='outline' className='text-sm'>
                     {esp.nombre}
                   </Badge>
@@ -125,21 +143,23 @@ export default function ServiceOrderDetails() {
               </div>
             </div>
           )}
-          {serviceOrder?.proyecto_read && (
+          {/* Obra */}
+          {serviceOrder?.obra_nombre && (
             <div className={ClassDiv}>
-              <label className={ClassLabel}>Proyecto</label>
-              <span>{serviceOrder?.proyecto_read}</span>
+              <label className={ClassLabel}>Obra:</label>
+              <span>{serviceOrder?.obra_nombre}</span>
             </div>
           )}
         </div>
-
         <div className='flex justify-end gap-4'>
-          {serviceOrder?.estado_read === 'Creada' && <ButtonEjecutar id={id} refetch={refetch} />}
-          {serviceOrder?.estado_read === 'En Progreso' && (
+          {serviceOrder?.estado_nombre === 'Creada' && user?.rol === 'A.Juridico' && (
+            <ButtonEjecutar id={id} refetch={refetch} />
+          )}
+          {serviceOrder?.estado_nombre === 'En Progreso' && (
             <ButtonCompletar id={id} refetch={refetch} />
           )}
-          {serviceOrder.estado_read !== 'Completada' &&
-            serviceOrder.estado_read !== 'Cancelada' && (
+          {serviceOrder.estado_nombre !== 'Completada' &&
+            serviceOrder.estado_nombre !== 'Cancelada' && (
               <ButtonCancelar id={id} refetch={refetch} />
             )}
         </div>

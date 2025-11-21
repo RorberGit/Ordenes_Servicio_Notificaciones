@@ -1,32 +1,29 @@
 import { menu } from './menu'
 import Navbar from './navbar'
 import { Outlet } from 'react-router-dom'
-import almest from '../../assets/almest.jpg'
 import React from 'react'
+import { useAuth } from '@/context/AuthContext'
 
 // ... (Tipado de LogoProps y definición de logo se mantienen igual)
-interface LogoProps {
-  url: string
-  src: string
-  alt: string
-  title: string
-}
-
-const logo: LogoProps = {
-  url: 'https://www.hra.cu',
-  src: almest,
-  alt: 'logo',
-  title: 'ALMEST',
-}
 
 const Layout: React.FC = () => {
+  const { user } = useAuth()
+
+  // Filtrar menú basado en el rol del usuario
+  const filteredMenu = menu.filter(item => {
+    if (item.title === 'Configuración') {
+      return user?.rol === 'Administrador'
+    }
+    return true
+  })
+
   return (
     // CONTENEDOR PRINCIPAL:
     // flex min-h-screen flex-col: Esto hace que el contenedor ocupe el 100% de la altura.
     <div className='bg-background text-foreground flex min-h-screen flex-col antialiased'>
       {/* HEADER: Fijo y siempre visible (no se desplaza) */}
       <header className='bg-background sticky top-0 z-50 flex h-16 flex-shrink-0 items-center border-b shadow-md'>
-        <Navbar logo={logo} menu={menu} />
+        <Navbar menu={filteredMenu} />
       </header>
 
       {/* MAIN: Contenido principal (donde debe ir el scroll) */}

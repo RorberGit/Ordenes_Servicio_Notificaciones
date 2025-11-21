@@ -55,14 +55,14 @@ export default function ButtonCancelar({ id, refetch }: ButtonCancelarProps) {
       form.reset()
     },
     onError: error => {
+      logger.error('Error en la cancelación de la notificación', error)
       toast.error('Error al actualizar el estado')
-      logger.error('Error updating status:', error)
     },
   })
 
   const handleCancelar = useCallback(
     (data: CancelFormData) => {
-      if (!user?.userName) {
+      if (!user?.username) {
         toast.error('Usuario no autenticado')
         return
       }
@@ -72,11 +72,11 @@ export default function ButtonCancelar({ id, refetch }: ButtonCancelarProps) {
         historico: {
           estado: 6,
           resumen: data.resumen.trim(),
-          username: user.userName,
+          username: user.username,
         },
       })
     },
-    [user?.userName, updateMutation],
+    [user?.username, updateMutation],
   )
 
   return (

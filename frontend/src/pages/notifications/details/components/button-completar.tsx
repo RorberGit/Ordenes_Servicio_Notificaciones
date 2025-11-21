@@ -15,21 +15,21 @@ import { toast } from 'sonner'
 import { useAuth } from '@/context/AuthContext'
 import type { QueryObserverResult, RefetchOptions } from '@tanstack/react-query'
 import type { ApiResponse } from '@/services/apiClient'
-import type { ServiceOrder } from '../../types'
+import type { Notification } from '../../types'
 import { logger } from '@/lib/logger'
 
 interface ButtonCompletarProps {
   id?: string
   refetch: (
     options?: RefetchOptions,
-  ) => Promise<QueryObserverResult<ApiResponse<ServiceOrder>, Error>>
+  ) => Promise<QueryObserverResult<ApiResponse<Notification>, Error>>
 }
 
 export default function ButtonCompletar({ id, refetch }: ButtonCompletarProps) {
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const { user } = useAuth()
 
-  const updateMutation = useUpdateRecord(`/ordenes/update?id=${id}`, {
+  const updateMutation = useUpdateRecord(`/notificaciones/update?id=${id}`, {
     onSuccess: () => {
       toast.success('Estado actualizado a Completado')
       refetch()
@@ -45,7 +45,7 @@ export default function ButtonCompletar({ id, refetch }: ButtonCompletarProps) {
     (event: React.FormEvent) => {
       event.preventDefault()
 
-      if (!user?.userName) {
+      if (!user?.username) {
         toast.error('Usuario no autenticado')
         return
       }
@@ -54,12 +54,12 @@ export default function ButtonCompletar({ id, refetch }: ButtonCompletarProps) {
         estado: 5,
         historico: {
           estado: 5,
-          resumen: 'Orden de servicio Completada',
-          username: user.userName,
+          resumen: 'Notificación Completada',
+          username: user.username,
         },
       })
     },
-    [user?.userName, updateMutation],
+    [user?.username, updateMutation],
   )
 
   return (

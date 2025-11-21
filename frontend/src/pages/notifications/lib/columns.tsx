@@ -4,6 +4,7 @@ import { ArrowUpDown, ArrowUp, ArrowDown, View } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import type { Notification } from '../types'
 import { getStatusBadgeClasses } from '@/pages/utils/status-class-utils'
+import dayjs from 'dayjs'
 
 export const getColumns = (navigate: (path: string) => void): ColumnDef<Notification>[] => [
   {
@@ -66,7 +67,7 @@ export const getColumns = (navigate: (path: string) => void): ColumnDef<Notifica
     ),
     cell: ({ row }) => {
       const date = row.getValue('fecha_notificacion') as string
-      return date ? new Date(date).toLocaleDateString('es-ES') : '-'
+      return date ? dayjs(date).format('DD-MM-YYYY') : '-'
     },
   },
   {

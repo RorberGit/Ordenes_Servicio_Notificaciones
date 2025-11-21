@@ -1,6 +1,6 @@
-import { logger } from '@/lib/logger'
 import axios from 'axios'
 import type { AxiosInstance, AxiosResponse } from 'axios'
+import { authService } from './authService'
 
 // Configuración base de Axios
 const apiClient: AxiosInstance = axios.create({
@@ -14,9 +14,12 @@ const apiClient: AxiosInstance = axios.create({
 // Interceptor para agregar token de autenticación si existe
 apiClient.interceptors.request.use(
   config => {
-    const token = localStorage.getItem('authToken')
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`
+    const access_token = authService.getAccessToken()
+
+    console.log('token en uso =>', access_token)
+
+    if (access_token) {
+      config.headers.Authorization = `Bearer ${access_token}`
     }
     return config
   },
@@ -28,16 +31,45 @@ apiClient.interceptors.request.use(
 // Interceptor para manejar errores de respuesta
 apiClient.interceptors.response.use(
   (response: AxiosResponse) => {
-    logger.info('Response apiClient =>', response)
+    console.log('Response apiClient =>', response)
     // Manejar respuestas exitosas
     return response
   },
-  error => {
-    if (error.response?.status === 401) {
-      // Token expirado, redirigir a login
-      localStorage.removeItem('authToken')
-      window.location.href = '/login'
+  async error => {
+    console.log('Errores response API', error)
+
+    const originalRequest = error.config
+
+    if (error.response?.status === 401 && !originalRequest._retry) {
+      originalRequest._retry = true
+
+      // Obtener el refresh tokens
+      const refreshToken = authService.getRefreshToken()
+
+      if (refreshToken) {
+        try {
+          const { data } = await axios.post(`${apiClient.defaults.baseURL}/auth/refresh/`, {
+            refresh: refreshToken,
+          })
+
+          // Almacenar nuevos tokens
+          authService.setTokens(data.access, data.refresh)
+
+          //apiClient.defaults.headers.common.Authorization = `Bearer ${data.access}`
+          //? Actualizar la solicitud con el nuevo token
+          originalRequest.headers.Authorization = `Bearer ${data.access}`
+
+          return apiClient(originalRequest)
+        } catch (error) {
+          console.error('Error interceptor refresh :> ', error)
+
+          authService.clear()
+
+          window.location.href = '/login'
+        }
+      }
     }
+
     return Promise.reject(error)
   },
 )

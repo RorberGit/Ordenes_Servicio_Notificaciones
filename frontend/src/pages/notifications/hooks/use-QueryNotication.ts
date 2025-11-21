@@ -19,7 +19,7 @@ export default function useQueryNotication() {
   useEffect(() => {
     if (ordenServicioError) {
       toast.error('Error al cargar las Ordenes de Servicio', {
-        description: 'Se usarán valores por defecto. Verifique su conexión.',
+        description: 'Se usarán valores por defecto.',
       })
     }
   }, [ordenServicioError])

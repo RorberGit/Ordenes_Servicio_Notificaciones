@@ -12,11 +12,15 @@ import { Badge } from '@/components/ui/badge'
 import ButtonCompletar from './components/button-completar'
 import ButtonCancelar from './components/button-cancelar'
 import { useMemo } from 'react'
+import TiempoTranscurrido from '@/pages/components/tiempo-trascurrido'
+import dayjs from 'dayjs'
+import { useAuth } from '@/context/AuthContext'
 
 export default function NotificationDetails() {
   const { id } = useParams<{ id: string }>()
 
   const navigate = useNavigate()
+  const { user } = useAuth()
 
   const {
     data: notificationData,
@@ -72,7 +76,13 @@ export default function NotificationDetails() {
     <Card className='mx-auto w-[800px]'>
       <CardHeader>
         <div className='flex items-center gap-4'>
-          <Button variant='outline' size='sm' onClick={() => navigate('/notifications/view')}>
+          <Button
+            variant='outline'
+            size='sm'
+            onClick={() =>
+              navigate('/notifications/view', { replace: true, state: { refresh: true } })
+            }
+          >
             <ArrowLeft className='mr-2 h-4 w-4' />
             Volver
           </Button>
@@ -80,6 +90,12 @@ export default function NotificationDetails() {
         </div>
       </CardHeader>
       <CardContent className='space-y-6'>
+        {notification?.fecha_notificacion && (
+          <TiempoTranscurrido
+            fecha_notificacion={notification.fecha_notificacion}
+            estado={notification.estado_read}
+          />
+        )}
         <div className='grid grid-cols-1 gap-4'>
           {/* Número de notificación */}
           <div className={ClassDiv}>
@@ -89,15 +105,15 @@ export default function NotificationDetails() {
 
           {/* Asunto */}
           <div className={ClassDiv}>
-            <label className={ClassLabel}>Asunto</label>
+            <label className={ClassLabel}>Asunto:</label>
             <p>{notification.asunto}</p>
           </div>
 
           {/* Fecha de notificación en formato dd/mm/aaaa */}
           {notification?.fecha_notificacion && (
             <div className={ClassDiv}>
-              <label className={ClassLabel}>Fecha de Notificación</label>
-              <span>{new Date(notification.fecha_notificacion).toLocaleDateString('es-ES')}</span>
+              <label className={ClassLabel}>Fecha de Notificación:</label>
+              <span>{dayjs(notification.fecha_notificacion).format('DD/MM/YYYY')}</span>
             </div>
           )}
 
@@ -110,7 +126,7 @@ export default function NotificationDetails() {
           {/* Númer de order de servicio que responde si existe */}
           {notification?.numero_orden_respuesta_read && (
             <div className={ClassDiv}>
-              <label className={ClassLabel}>Número de order de servicio que responde :</label>
+              <label className={ClassLabel}>Número de order de servicio que responde:</label>
               <p>{notification?.numero_orden_respuesta_read}</p>
             </div>
           )}
@@ -137,16 +153,18 @@ export default function NotificationDetails() {
             </div>
           )}
 
-          {notification?.proyecto_read && (
+          {notification?.obra_read && (
             <div className={ClassDiv}>
-              <label className={ClassLabel}>Proyecto</label>
-              <span>{notification?.proyecto_read}</span>
+              <label className={ClassLabel}>Obra:</label>
+              <span>{notification?.obra_read}</span>
             </div>
           )}
         </div>
 
         <div className='flex justify-end gap-4'>
-          {notification?.estado_read === 'Creada' && <ButtonEjecutar id={id} refetch={refetch} />}
+          {notification?.estado_read === 'Creada' && user?.rol === 'A.Juridico' && (
+            <ButtonEjecutar id={id} refetch={refetch} />
+          )}
           {notification?.estado_read === 'En Progreso' && (
             <ButtonCompletar id={id} refetch={refetch} />
           )}

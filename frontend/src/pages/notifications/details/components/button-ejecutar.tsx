@@ -20,14 +20,14 @@ import { toast } from 'sonner'
 import { useAuth } from '@/context/AuthContext'
 import type { QueryObserverResult, RefetchOptions } from '@tanstack/react-query'
 import type { ApiResponse } from '@/services/apiClient'
-import type { ServiceOrder } from '../../types'
+import type { Notification } from '../../types'
 import { logger } from '@/lib/logger'
 
 interface ButtonEjecutarProps {
   id?: string
   refetch: (
     options?: RefetchOptions,
-  ) => Promise<QueryObserverResult<ApiResponse<ServiceOrder>, Error>>
+  ) => Promise<QueryObserverResult<ApiResponse<Notification>, Error>>
 }
 
 const executeSchema = z.object({
@@ -49,7 +49,7 @@ export default function ButtonEjecutar({ id, refetch }: ButtonEjecutarProps) {
     },
   })
 
-  const updateMutation = useUpdateRecord(`/ordenes/update?id=${id}`, {
+  const updateMutation = useUpdateRecord(`/notificaciones/update?id=${id}`, {
     onSuccess: () => {
       toast.success('Estado actualizado a En Progreso')
       refetch()
@@ -64,7 +64,7 @@ export default function ButtonEjecutar({ id, refetch }: ButtonEjecutarProps) {
 
   const handleExecute = useCallback(
     (data: ExecuteFormData) => {
-      if (!user?.userName) {
+      if (!user?.username) {
         toast.error('Usuario no autenticado')
         return
       }
@@ -74,14 +74,14 @@ export default function ButtonEjecutar({ id, refetch }: ButtonEjecutarProps) {
         fecha_notificacion: data.fecha_notificacion.toISOString().split('T')[0],
         historico: {
           estado: 2,
-          resumen: 'Orden de servicio iniciada',
-          username: user.userName,
+          resumen: 'Notificación iniciada',
+          username: user.username,
         },
       }
 
       updateMutation.mutate(payload)
     },
-    [user?.userName, updateMutation],
+    [user?.username, updateMutation],
   )
 
   return (

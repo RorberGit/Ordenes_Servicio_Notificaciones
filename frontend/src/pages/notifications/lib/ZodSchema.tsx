@@ -9,9 +9,6 @@ const ZodSchemaNotification = z
       message: 'Debe ser un número no menor de 4 digitos',
     }),
     asunto: z.string().refine(val => val.length > 0, 'Este campo es requerido'),
-    fecha_notificacion: z.date({
-      required_error: 'La fecha de notificación es requerida',
-    }),
     lleva_respuesta: z.boolean().optional(),
     numero_orden_respuesta: z.string().optional(),
     especialidad: z.array(z.string()).optional(),
@@ -19,25 +16,22 @@ const ZodSchemaNotification = z
   })
   .superRefine((data, ctx) => {
     // Si lleva respuesta es true, entonces numero_orden_respuesta es requerido
-    if (
-      data.lleva_respuesta &&
-      (!data.numero_orden_respuesta || data.numero_orden_respuesta.trim() === '')
-    ) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message:
-          'El número de orden de respuesta es requerido cuando la notificación lleva respuesta',
-        path: ['numero_orden_respuesta'],
-      })
+    // Si lleva respuesta es true, entonces tipo_respuesta es requerido
+    if (data.lleva_respuesta) {
+      if (!data.tipo_respuesta) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: 'El tipo de respuesta es requerido cuando la notificación lleva respuesta',
+          path: ['tipo_respuesta'],
+        })
+      }
     }
 
-    // Si lleva respuesta es true, entonces tipo_respuesta es requerido
-    if (data.lleva_respuesta && (!data.tipo_respuesta || data.tipo_respuesta.trim() === '')) {
+    if (data.tipo_respuesta && data.tipo_respuesta === 'Plano' && data.especialidad?.length === 0) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
-        message:
-          'El tipo de respuesta es requerido cuando la notificación está pendiente de respuesta',
-        path: ['tipo_respuesta'],
+        message: 'Las especialidades son requerias cuando Tipo respuesta es igual Plano',
+        path: ['especialidad'],
       })
     }
   })

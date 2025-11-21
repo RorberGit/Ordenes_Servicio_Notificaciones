@@ -1,21 +1,14 @@
 // src/context/AuthContext.tsx
 
 import React, { createContext, useContext, useState, type ReactNode } from 'react'
-import type { UserData, AuthContextType } from '../types/auth' // Importa tus tipos
+import type { UserData, AuthContextType, Tokens, UserContext } from '../types/auth' // Importa tus tipos
+import { authService } from '@/services/authService'
 
-// -----------------------------------------------------
-// Clave para localStorage
-const LOCAL_STORAGE_KEY = 'auth_user_data'
-// -----------------------------------------------------
-
-// Función para obtener los datos iniciales del usuario desde localStorage
-const getInitialUser = (): UserData | null => {
+// Función para obtener los iniciales del usuario desde localStorage
+const getInitialUser = (): UserContext | null => {
   try {
-    const storedData = localStorage.getItem(LOCAL_STORAGE_KEY)
-    if (storedData) {
-      // Si hay datos, los parseamos y los retornamos
-      return JSON.parse(storedData) as UserData
-    }
+    const storedData = authService.getUser()
+    if (storedData) return storedData
   } catch (error) {
     console.error('Error al leer datos de localStorage:', error)
   }
@@ -31,21 +24,32 @@ interface AuthProviderProps {
 }
 
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
-  const [user, setUser] = useState<UserData | null>(getInitialUser)
+  const [user, setUser] = useState<UserContext | null>(getInitialUser)
   const isAuthenticated = user !== null
 
   // Función para manejar el login (se llama después de la autenticación exitosa)
-  const login = (data: UserData) => {
+  const login = (userData: UserData, tokens: Tokens) => {
+    const data: UserContext = {
+      username: userData.username,
+      fullname: userData.fullname,
+      obra_principal: userData.obra_principal_nombre,
+      email: userData.email,
+      rol: userData.rol_nombre,
+      obras_permitidas: userData.obras_permitidas?.map(obra => obra.nombre),
+    }
+
     setUser(data)
+    // Almacenar tokens
+    authService.setTokens(tokens.access_token, tokens.refresh_token)
     // 2. Almacena los datos en localStorage
-    localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(data))
+    authService.setUser(data)
   }
 
   // Función para manejar el logout
   const logout = () => {
     setUser(null)
     // 3. Limpia localStorage
-    localStorage.removeItem(LOCAL_STORAGE_KEY)
+    authService.clear()
   }
 
   const contextValue: AuthContextType = {

@@ -15,7 +15,11 @@ const color = {
 // Función para logs bonitos en consola
 const logWithStyle = (level: keyof typeof color, ...args: unknown[]) => {
   if (isDev) {
-    console[level](`%c[MyApp]`, color[level], ...args)
+    // Convertir objetos a strings para evitar errores de renderizado en React
+    const processedArgs = args.map(arg =>
+      typeof arg === 'object' && arg !== null ? JSON.stringify(arg) : arg,
+    )
+    console[level](`%c[MyApp]`, color[level], ...processedArgs)
   }
 }
 
