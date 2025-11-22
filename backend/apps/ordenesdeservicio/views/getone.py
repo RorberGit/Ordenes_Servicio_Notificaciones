@@ -1,8 +1,9 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
+from rest_framework import permissions
 
 from apps.ordenesdeservicio.models.ordenesservico import OrdenesServicio
-from apps.ordenesdeservicio.serializers.ordenesservicio import OrdenesServicioSerializer
+from apps.ordenesdeservicio.serializers.ordenesservicio import OrdenesServicioReadSerializer
 from apps.ordenesdeservicio.utils import Parametros
 from utils.responses import ApiResponse
 
@@ -11,11 +12,14 @@ class OrdenesServicioGetOneView(APIView):
     '''
         Vista de consulta de un solo registro
     '''
+    permission_classes = [
+        permissions.IsAuthenticated]
 
     def get(self, request):
         try:
             # * Obtener filtro
-            filtro = Parametros(request)
+            filtro = Parametros(
+                request)
 
             # * Si no existe un filtro
             if not filtro.children:
@@ -28,7 +32,8 @@ class OrdenesServicioGetOneView(APIView):
                 return Response(api_response.to_dict(), status=api_response.status_code)
 
             # * Obtener el objeto ordenes de servicio
-            ordenservicio = OrdenesServicio.objects.get(filtro)
+            ordenservicio = OrdenesServicio.objects.get(
+                filtro)
         except OrdenesServicio.DoesNotExist:
             # * En caso de no tener resultado
             api_response = ApiResponse(
@@ -49,7 +54,8 @@ class OrdenesServicioGetOneView(APIView):
             return Response(api_response.to_dict(), status=api_response.status_code)
 
         # * Serializar el objeto
-        serializer = OrdenesServicioSerializer(ordenservicio)
+        serializer = OrdenesServicioReadSerializer(
+            ordenservicio)
 
         # * Crear respuesta estandarizada
         api_response = ApiResponse(

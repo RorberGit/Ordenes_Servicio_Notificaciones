@@ -33,7 +33,9 @@ class Notificacion(FieldsTemplate):
 
     # Fecha de notificación
     fecha_notificacion = models.DateField(
-        auto_now_add=True,
+
+        blank=True,
+        null=True,
         verbose_name="Fecha de Notificación",
         help_text="Fecha y hora en que se recibió la notificación"
     )
@@ -54,14 +56,14 @@ class Notificacion(FieldsTemplate):
         help_text="Especialidades relacionadas con la notificación"
     )
 
-    # Proyecto relacionado con la notificación (1:n)
-    proyecto = models.ForeignKey(
-        'proyecto.Proyecto',
+    # Obra relacionado con la notificación (1:n)
+    obra = models.ForeignKey(
+        'obra.Obra',
         on_delete=models.CASCADE,
         null=True,
         blank=True,
-        verbose_name="Proyecto",
-        help_text="Proyecto al que pertenece esta notificación"
+        verbose_name="Obra",
+        help_text="Obra al que pertenece esta notificación"
     )
 
     # Número de la orden de servicio a la que responde (opcional)
@@ -103,7 +105,7 @@ class Notificacion(FieldsTemplate):
             '-fecha_notificacion']
 
     def __str__(self):
-        return f"Notificación #{self.numero_notificacion} - {self.asunto}"
+        return f"{self.numero_notificacion} - {self.asunto}"
 
 
 class HistoricoNotificacion(FieldsTemplate):
@@ -128,7 +130,7 @@ class HistoricoNotificacion(FieldsTemplate):
         verbose_name="Estado",
         help_text="Estado de la notificación en este momento histórico"
     )
-    
+
     # Fecha del cambio de estado
     fecha = models.DateTimeField(
         auto_now_add=True,

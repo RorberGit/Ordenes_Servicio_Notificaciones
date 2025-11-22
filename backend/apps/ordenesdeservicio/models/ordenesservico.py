@@ -51,11 +51,11 @@ class OrdenesServicio(FieldsTemplate):
     # Tipo de contenido relacionado con la orden de servicio
     tipo_contenido = models.ForeignKey(
         'tiposdecontenido.TipoContenido',
-        blank=True,
-        null=True,
         on_delete=models.CASCADE,
+        null=True,
+        blank=True,
         verbose_name="Tipo de Contenido",
-        help_text="Tipo de contenido relacionado con la orden de servicio"
+        help_text="Tipo de contenido asociada a la Orden de servicio"
     )
 
     # Especialidad relacionada con la orden de servicio (opcional)
@@ -67,14 +67,14 @@ class OrdenesServicio(FieldsTemplate):
         help_text="Especialidad relacionada con la orden de servicio"
     )
 
-    # Proyecto relacionado con la orden de servicio (1:n)
-    proyecto = models.ForeignKey(
-        'proyecto.Proyecto',
+    # Obra relacionado con la orden de servicio (1:n)
+    obra = models.ForeignKey(
+        'obra.Obra',
         on_delete=models.CASCADE,
         null=True,
         blank=True,
-        verbose_name="Proyecto",
-        help_text="Proyecto al que pertenece esta orden de servicio"
+        verbose_name="Obra",
+        help_text="Obra al que pertenece esta orden de servicio"
     )
 
     # Estado de la orden de servicio
@@ -85,6 +85,13 @@ class OrdenesServicio(FieldsTemplate):
         blank=True,
         verbose_name="Estado",
         help_text="Estado actual de la orden de servicio"
+    )
+
+    # Indica si la orden lleva respuesta
+    lleva_respuesta = models.BooleanField(
+        default=False,
+        verbose_name="Lleva Respuesta",
+        help_text="Indica si la orden de servicio lleva una respuesta"
     )
 
     # Metadatos del modelo

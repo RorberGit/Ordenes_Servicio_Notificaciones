@@ -1,46 +1,56 @@
-from rest_framework.views import APIView
+from rest_framework.generics import ListAPIView
 from rest_framework.response import Response
+from rest_framework import status, permissions
 
 from apps.tiposdecontenido.models import TipoContenido
-from apps.tiposdecontenido.serializers.tiposdecontenido import TipoContenidoSerializer
+from apps.tiposdecontenido.serializers import TipoContenidoSerializer
 from utils.responses import ApiResponse
 
 
-class TipoContenidoGetAllView(APIView):
+class TiposContenidoGetAllView(ListAPIView):
     '''
-        Vista de consulta de todos los registros de Tipo de Contenido
+        Vista optimizada de consulta de todos los registros de Especialidad
+        Aprovecha al máximo las características de ListAPIView
     '''
+    queryset = TipoContenido.objects.all()
+    serializer_class = TipoContenidoSerializer
+    permission_classes = [
+        permissions.IsAuthenticated]
 
-    def get(self, request):
+    def get(self, request, *args, **kwargs):
+        '''
+            Sobrescribe el método get para mantener la respuesta estandarizada
+        '''
         try:
-            # * Obtener todos los tipos de contenido
-            tipos_contenido = TipoContenido.objects.all()
+            # Usar el método list heredado de ListAPIView
+            response = self.list(
+                request, *args, **kwargs)
 
-            # * Verificar que se encontraron los resultados
-            if not tipos_contenido.exists():
-                api_response = ApiResponse(
-                    success=False,
-                    message="No se encontraron tipos de contenido",
-                    data=[],
-                    status_code=404
+            # Si no hay datos, personalizar la respuesta
+            if not response.data:
+                return Response(
+                    ApiResponse(
+                        success=False,
+                        message="No se encontraron Tipos de Contenidos",
+                        data=[]).to_dict(),
+                    status=status.HTTP_404_NOT_FOUND
                 )
-            else:
-                # * Serializar el objeto
-                serializer = TipoContenidoSerializer(
-                    tipos_contenido, many=True)
 
-                # * Crear respuesta estandarizada
-                api_response = ApiResponse(
+            # Respuesta exitosa con datos
+            return Response(
+                ApiResponse(
                     success=True,
-                    message="Tipos de contenido obtenidos exitosamente",
-                    data=serializer.data)
-        except Exception as e:
-            # * Respuesta a los errores internos del servidor
-            api_response = ApiResponse(
-                success=False,
-                message=f"Ocurrió un error inesperado: {str(e)}",
-                data=None,
-                status_code=500
+                    message="Tipos de Contenidos obtenidos exitosamente",
+                    data=response.data).to_dict(),
+                status=status.HTTP_200_OK
             )
 
-        return Response(api_response.to_dict(), status=api_response.status_code)
+        except Exception as e:
+            # Respuesta a los errores internos del servidor
+            return Response(
+                ApiResponse(
+                    success=False,
+                    message=f"Ocurrió un error inesperado: {str(e)}",
+                    data=None).to_dict(),
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )

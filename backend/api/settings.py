@@ -11,6 +11,8 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
 from pathlib import Path
+# import os
+from datetime import timedelta
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(
@@ -26,7 +28,13 @@ SECRET_KEY = 'django-insecure--sxfduh$3(a7v+3y*-8a+f@yma9h%pr+1-+(0q#%x#t8m!%mpn
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = [
+    "10.15.27.6",
+    "localhost"
+]
+
+# Modelo de usuario personalizado
+AUTH_USER_MODEL = 'usuarios.Usuarios'
 
 
 # Application definition
@@ -40,6 +48,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
 
     'rest_framework',
+    'rest_framework_simplejwt.token_blacklist',
 
     'corsheaders',
 
@@ -52,14 +61,15 @@ INSTALLED_APPS = [
     "apps.notificaciones",
     "apps.tiposdecontenido",
     "apps.especialidades",
-    "apps.tiposderespuesta",
-    "apps.proyecto",
+    "apps.obra",
     "apps.usuarios",
+    "apps.administrar"
 ]
 
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:5173",
     "http://127.0.0.1:5173",
+    "http://10.15.27.6",
 ]
 
 MIDDLEWARE = [
@@ -97,13 +107,6 @@ WSGI_APPLICATION = 'api.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
-""" DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
-} """
-
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.postgresql",
@@ -140,7 +143,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = 'en-us'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'America/Havana'
 
 USE_I18N = True
 
@@ -155,32 +158,80 @@ STATIC_URL = 'static/'
 # os.path.join(BASE_DIR, 'staticfiles')
 STATIC_ROOT = 'static/'
 
+# --------------------------------------------------
+# 1. Configuración de JWT (SimpleJWT)
+# --------------------------------------------------
+
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    ],
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.IsAuthenticated',
+    ],
+}
+
+SIMPLE_JWT = {
+    "ACCESS_TOKEN_LIFETIME": timedelta(hours=8),
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=1),
+    "ROTATE_REFRESH_TOKENS": True,
+    "BLACKLIST_AFTER_ROTATION": True,
+}
+
+""" SIMPLE_JWT = {
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=60),
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=7),
+    'ROTATE_REFRESH_TOKENS': True,
+    'ALGORITHM': 'HS256',
+    # << CAMBIA ESTO
+    'SIGNING_KEY': 'P@ssw0rd',
+    'AUTH_HEADER_TYPES': ('Bearer',),
+    'USER_ID_FIELD': 'id',
+    'USER_ID_CLAIM': 'user_id',
+} """
+
+# --------------------------------------------------
+# 2. Configuración de LDAP3
+# --------------------------------------------------
+""" LDAP_SERVER = '10.15.27.202'
+LDAP_PORT = 389
+LDAP_USE_TLS = False
+LDAP_BASE_DN = 'dc=hra,dc=almest,dc=cu'
+LDAP_USERS_DN = 'ou=ubi_ra,dc=hra,dc=almest,dc=cu'
+
+# Credenciales de BIND para el Servicio/Admin (para listar y buscar usuarios)
+LDAP_BIND_USER = 'cn=ad,ou=ubi_ra,dc=hra,dc=almest,dc=cu'
+# << CAMBIA ESTO
+LDAP_BIND_PASSWORD = 'NumLock01' """
+
+LDAP_SERVER = '192.168.20.3'
+LDAP_PORT = 389
+LDAP_USE_TLS = False
+LDAP_BASE_DN = 'dc=ecotra,dc=co,dc=cu'
+LDAP_USERS_DN = 'cn=users,dc=ecotra,dc=co,dc=cu'
+
+# Credenciales de BIND para el Servicio/Admin (para listar y buscar usuarios)
+LDAP_BIND_USER = 'cn=ldap,cn=users,dc=ecotra,dc=co,dc=cu'
+# << CAMBIA ESTO
+LDAP_BIND_PASSWORD = 'Passw0rd'
+
+# Mapeo de Atributos de AD/LDAP a Django
+# Usado para el login userPrincipalName
+# {
+#    "username": "Administrator",
+#    "password": "Acive3371*"
+# }
+
+LDAP_USERNAME_ATTR = 'sAMAccountName'
+LDAP_FULLNAME_ATTR = 'cn'
+LDAP_EMAIL_ATTR = 'userPrincipalName'
+
+
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-""" LOGGING = {
-    'version': 1,
-    'disable_existing_loggers': False,
-    'handlers': {
-        'console': {
-            'class': 'logging.StreamHandler',
-        },
-    },
-    'loggers': {
-        'django': {
-            'handlers': ['console'],
-            'level': 'DEBUG',
-            'propagate': True,
-        },
-        'rest_framework': {
-            'handlers': ['console'],
-            'level': 'ERROR',
-            'propagate': True,
-        },
-    }
-} """
 
 LOGGING = {
     'version': 1,
@@ -211,6 +262,14 @@ LOGGING = {
             'handlers': ['console'],
             # detallado en dev, silencioso en prod
             'level': 'INFO' if DEBUG else 'ERROR',
+            'propagate': False,
+        },
+
+        # ⚙️ Logger específico para la app de administración (LDAP)
+        'apps.administrar': {
+            'handlers': ['console'],
+            # detallado en dev para debugging LDAP
+            'level': 'DEBUG' if DEBUG else 'ERROR',
             'propagate': False,
         },
 

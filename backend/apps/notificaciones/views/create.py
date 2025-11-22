@@ -8,7 +8,8 @@ from rest_framework.exceptions import ValidationError
 from apps.comun.models import Estado
 from apps.notificaciones.serializers.notificaciones import NotificacionSerializer
 from apps.notificaciones.models.notificaciones import HistoricoNotificacion
-from apps.proyecto.models import Proyecto
+from apps.obra.models import Obra
+from apps.tiposdecontenido.models import TipoContenido
 from apps.usuarios.models import Usuarios
 from utils.responses import ApiResponse
 
@@ -26,7 +27,7 @@ class NotificacionCreateView(APIView):
 
     # Usamos IsAuthenticated para asegurar que solo usuarios logueados puedan crear
     permission_classes = [
-        permissions.AllowAny
+        permissions.IsAuthenticated
     ]
 
     def post(self, request):
@@ -46,12 +47,16 @@ class NotificacionCreateView(APIView):
             user = get_object_or_404(
                 Usuarios, username=username)
 
-            # Obtener el nombre del proyecto
-            nombre_proyecto = request.data.get(
-                'proyecto')
-            if not nombre_proyecto:
+            # Obtener el nombre del obra
+            nombre_obra = request.data.get(
+                'obra')
+            if not nombre_obra:
                 raise ValidationError(
-                    {"proyecto": "El campo 'proyecto' es requerido."})
+                    {"obra": "El campo 'obra' es requerido."})
+
+            # Validar existencia del obra
+            obra = get_object_or_404(
+                Obra, nombre=nombre_obra)
 
             # Obtener el estado
             nuevo_estado = request.data.get(
@@ -60,19 +65,26 @@ class NotificacionCreateView(APIView):
                 raise ValidationError(
                     {"estado": "El campo 'estado' es requerido"})
 
-            # Validar existencia del proyecto
-            proyecto = get_object_or_404(
-                Proyecto, nombre=nombre_proyecto)
-
             estado = get_object_or_404(
                 Estado, id=nuevo_estado)
 
+            # Obtener el Tipo Respuesta
+            nombre_tipo_respuesta = request.data.get(
+                'tipo_respuesta')
+            tipo_respuesta = None
+            if nombre_tipo_respuesta:
+                tipo_respuesta = get_object_or_404(
+                    TipoContenido, nombre=nombre_tipo_respuesta
+                )
+
             logger.info(
-                f"guardar desde el request {request.data}")
+                f"Guardar desde el request {request.data}")
 
             data = request.data.copy()
-            data["proyecto"] = proyecto.id
+            data["obra"] = obra.id
             data["estado"] = estado.id
+            if tipo_respuesta:
+                data["tipo_respuesta"] = tipo_respuesta.id
 
             # Serializar datos directamente con request.data
             serializer = NotificacionSerializer(

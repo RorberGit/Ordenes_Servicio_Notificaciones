@@ -5,7 +5,7 @@ from apps.especialidades.models import Especialidad
 from apps.especialidades.serializers.especialidades import EspecialidadSerializer
 from apps.notificaciones.models.notificaciones import Notificacion, HistoricoNotificacion
 from apps.ordenesdeservicio.models.ordenesservico import OrdenesServicio
-from apps.proyecto.models import Proyecto
+from apps.obra.models import Obra
 from apps.tiposdecontenido.models import TipoContenido
 from apps.tiposdecontenido.serializers.tiposdecontenido import TipoContenidoSerializer
 
@@ -35,8 +35,8 @@ class NotificacionSerializer(serializers.ModelSerializer):
     # Campos de escritura (write_only)
     especialidad = serializers.PrimaryKeyRelatedField(
         queryset=Especialidad.objects.all(), many=True, required=False, write_only=True)
-    proyecto = serializers.PrimaryKeyRelatedField(
-        queryset=Proyecto.objects.all(), required=False, write_only=True)
+    obra = serializers.PrimaryKeyRelatedField(
+        queryset=Obra.objects.all(), required=False, write_only=True)
     numero_orden_respuesta = serializers.PrimaryKeyRelatedField(
         queryset=OrdenesServicio.objects.all(), required=False, write_only=True)
     tipo_respuesta = serializers.PrimaryKeyRelatedField(
@@ -47,8 +47,8 @@ class NotificacionSerializer(serializers.ModelSerializer):
     # Campos de lectura (read_only)
     especialidad_read = EspecialidadSerializer(
         many=True, read_only=True, source='especialidad')
-    proyecto_read = serializers.StringRelatedField(
-        read_only=True, source='proyecto')
+    obra_read = serializers.StringRelatedField(
+        read_only=True, source='obra')
     numero_orden_respuesta_read = serializers.StringRelatedField(
         read_only=True, source='numero_orden_respuesta')
     tipo_respuesta_read = TipoContenidoSerializer(
@@ -62,7 +62,7 @@ class NotificacionSerializer(serializers.ModelSerializer):
         model = Notificacion
         fields = [
             'id', 'numero_notificacion', 'asunto', 'fecha_notificacion',
-            'lleva_respuesta', 'especialidad', 'especialidad_read', 'proyecto', 'proyecto_read',
+            'lleva_respuesta', 'especialidad', 'especialidad_read', 'obra', 'obra_read',
             'numero_orden_respuesta', 'numero_orden_respuesta_read', 'tipo_respuesta', 'tipo_respuesta_read',
             'estado', 'estado_read', 'historicos'
         ]

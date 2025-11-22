@@ -6,7 +6,7 @@ from apps.especialidades.serializers.especialidades import EspecialidadSerialize
 from apps.notificaciones.models.notificaciones import Notificacion
 from apps.notificaciones.serializers.notificaciones import NotificacionSerializer
 from apps.ordenesdeservicio.models.ordenesservico import OrdenesServicio, HistoricoOS
-from apps.proyecto.models import Proyecto
+from apps.obra.models import Obra
 from apps.tiposdecontenido.models import TipoContenido
 from apps.tiposdecontenido.serializers.tiposdecontenido import TipoContenidoSerializer
 
@@ -41,8 +41,8 @@ class OrdenesServicioSerializer(serializers.ModelSerializer):
         queryset=TipoContenido.objects.all(), required=False, write_only=True)
     notificacion = serializers.PrimaryKeyRelatedField(
         queryset=Notificacion.objects.all(), required=False, write_only=True)
-    proyecto = serializers.PrimaryKeyRelatedField(
-        queryset=Proyecto.objects.all(), required=False, write_only=True)
+    obra = serializers.PrimaryKeyRelatedField(
+        queryset=Obra.objects.all(), required=False, write_only=True)
     estado = serializers.PrimaryKeyRelatedField(
         queryset=Estado.objects.all(), required=False, write_only=True)
 
@@ -53,8 +53,8 @@ class OrdenesServicioSerializer(serializers.ModelSerializer):
         read_only=True, source='tipo_contenido')
     notificacion_read = NotificacionSerializer(
         read_only=True, source='notificacion')
-    proyecto_read = serializers.StringRelatedField(
-        read_only=True, source='proyecto')
+    obra_read = serializers.StringRelatedField(
+        read_only=True, source='obra')
     estado_read = serializers.StringRelatedField(
         read_only=True, source='estado')
     historicos = HistoricoOSSerializer(
@@ -65,8 +65,29 @@ class OrdenesServicioSerializer(serializers.ModelSerializer):
         fields = [
             'id', 'numero_orden', 'asunto', 'fecha_notificacion',
             'notificacion', 'notificacion_read', 'tipo_contenido', 'tipo_contenido_read',
-            'especialidad', 'especialidad_read', 'proyecto', 'proyecto_read',
+            'especialidad', 'especialidad_read', 'obra', 'obra_read',
             'estado', 'estado_read', 'historicos'
         ]
         read_only_fields = [
             'id']
+
+
+class OrdenesServicioReadSerializer(serializers.ModelSerializer):
+    notificacion_id_nombre = serializers.StringRelatedField(
+        source='notificacion', read_only=True)
+    tipo_contenido_nombre = serializers.CharField(
+        source='tipo_contenido.nombre', read_only=True)
+    obra_nombre = serializers.CharField(
+        source='obra.nombre', read_only=True)
+    estado_nombre = serializers.CharField(
+        source='estado.nombre', read_only=True)
+    especialidades = EspecialidadSerializer(
+        source='especialidad', many=True, read_only=True)
+    historicos = HistoricoOSSerializer(
+        many=True, read_only=True)
+
+    class Meta:
+        model = OrdenesServicio
+        fields = ['id', 'numero_orden', 'asunto', 'fecha_notificacion',
+                  'notificacion_id_nombre', 'tipo_contenido_nombre', 'obra_nombre',
+                  'estado_nombre', 'especialidades', 'historicos']

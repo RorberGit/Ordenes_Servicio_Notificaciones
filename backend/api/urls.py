@@ -28,8 +28,10 @@ urlpatterns = [
          include("apps.especialidades.urls")),
     path("notificaciones/",
          include("apps.notificaciones.urls")),
-    path("proyectos/",
-         include("apps.proyecto.urls")),
+    path("obras/",
+         include("apps.obra.urls")),
     path("usuarios/",
-         include("apps.usuarios.urls"))
+         include("apps.usuarios.urls")),
+    path(
+        "auth/", include("apps.administrar.urls"))
 ]

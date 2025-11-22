@@ -9,7 +9,7 @@ from django.db import models
 from apps.comun.models import Estado
 from apps.ordenesdeservicio.serializers.ordenesservicio import OrdenesServicioSerializer
 from apps.ordenesdeservicio.models.ordenesservico import OrdenesServicio, HistoricoOS
-from apps.proyecto.models import Proyecto
+from apps.obra.models import Obra
 from apps.usuarios.models import Usuarios
 from apps.tiposdecontenido.models import TipoContenido
 from utils.responses import ApiResponse
@@ -28,7 +28,7 @@ class OrdenesServicioCreateView(APIView):
 
     # Usamos IsAuthenticated para asegurar que solo usuarios logueados puedan crear
     permission_classes = [
-        permissions.AllowAny
+        permissions.IsAuthenticated
     ]
 
     def post(self, request):
@@ -49,12 +49,20 @@ class OrdenesServicioCreateView(APIView):
                 raise ValidationError(
                     {"username": "El campo 'username' dentro de 'historico' es requerido."})
 
-            # Obtener el nombre del proyecto
-            nombre_proyecto = request.data.get(
-                'proyecto')
-            if not nombre_proyecto:
+            # Validar existencia del usuario
+            user = get_object_or_404(
+                Usuarios, username=username)
+
+            # Obtener el nombre del obra
+            nombre_obra = request.data.get(
+                'obra')
+            if not nombre_obra:
                 raise ValidationError(
-                    {"proyecto": "El campo 'proyecto' es requerido."})
+                    {"obra": "El campo 'obra' es requerido."})
+
+            # Validar existencia del obra
+            obra = get_object_or_404(
+                Obra, nombre=nombre_obra)
 
             # Obtener el estado
             nuevo_estado = request.data.get(
@@ -63,37 +71,32 @@ class OrdenesServicioCreateView(APIView):
                 raise ValidationError(
                     {"estado": "El campo 'estado' es requerido"})
 
-            # Obtener el Tipo Contenido
-            nombre_tipo_contenido = request.data.get(
-                'tipo_contenido')
-            if not nombre_tipo_contenido:
-                raise ValidationError(
-                    {"estado": "El campo 'estado' es requerido"})
-
-            # Validar existencia del proyecto
-            proyecto = get_object_or_404(
-                Proyecto, nombre=nombre_proyecto)
-
-            # Validar existencia del usuario
-            user = get_object_or_404(
-                Usuarios, username=username)
-
             # Validar existencia de estado
             estado = get_object_or_404(
                 Estado, id=nuevo_estado)
 
-            tipo_contenido = get_object_or_404(
-                TipoContenido, nombre=nombre_tipo_contenido
-            )
+            # Obtener el Tipo Contenido
+            nombre_tipo_contenido = request.data.get(
+                'tipo_contenido')
+            tipo_contenido = None
+            if nombre_tipo_contenido and nombre_tipo_contenido.strip():
+                tipo_contenido = get_object_or_404(
+                    TipoContenido, nombre=nombre_tipo_contenido
+                )
 
             logger.info(
                 f"guardar desde el request {request.data}")
 
             data = request.data.copy()
             data["numero_orden"] = numero_orden
-            data["proyecto"] = proyecto.id
+            data["obra"] = obra.id
             data["estado"] = estado.id
-            data['tipo_contenido'] = tipo_contenido.id
+            if tipo_contenido:
+                data['tipo_contenido'] = tipo_contenido.id
+            else:
+                # Si no hay tipo_contenido válido, no incluir el campo para que sea None
+                data.pop(
+                    'tipo_contenido', None)
 
             # Serializar datos directamente con request.data
             serializer = OrdenesServicioSerializer(

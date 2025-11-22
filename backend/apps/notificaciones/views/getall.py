@@ -1,6 +1,6 @@
 from rest_framework.generics import ListAPIView
 from rest_framework.response import Response
-from rest_framework import status
+from rest_framework import status, permissions
 
 from apps.notificaciones.models.notificaciones import Notificacion
 from apps.notificaciones.serializers.notificaciones import NotificacionSerializer
@@ -14,6 +14,8 @@ class NotificacionGetAllView(ListAPIView):
     '''
     queryset = Notificacion.objects.all()
     serializer_class = NotificacionSerializer
+    permission_classes = [
+        permissions.AllowAny]
 
     def get(self, request, *args, **kwargs):
         '''
@@ -21,7 +23,8 @@ class NotificacionGetAllView(ListAPIView):
         '''
         try:
             # Usar el método list heredado de ListAPIView
-            response = self.list(request, *args, **kwargs)
+            response = self.list(
+                request, *args, **kwargs)
 
             # Si no hay datos, personalizar la respuesta
             if not response.data:

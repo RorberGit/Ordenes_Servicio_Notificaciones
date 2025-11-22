@@ -1,43 +1,32 @@
-from django.db import models
+# apps.usuarios.models.py
 
+from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
+from django.db import models
+from django.utils import timezone
+
+from apps.obra.models import Obra
 from template.models import FieldsTemplate
 
 
-class Permisos(FieldsTemplate):
-    """Modelo de Permisos
-    Este modelo registra los permisos de acceso de los usuarios a diferentes proyectos.
-    Un usuario puede tener acceso a múltiples proyectos.
-    """
-    usuario = models.ForeignKey(
-        'Usuarios',
-        on_delete=models.CASCADE,
-        related_name='permisos',
-        verbose_name="Usuario",
-        help_text="Usuario al que se le otorgan permisos"
-    )
+class UsuariosManager(BaseUserManager):
+    def create_user(self, username, fullname, password=None, **extra_fields):
+        if not username:
+            raise ValueError(
+                'El nombre de usuario es obligatorio')
+        user = self.model(
+            username=username, fullname=fullname, **extra_fields)
+        user.set_password(
+            password)
+        user.save(
+            using=self._db)
+        return user
 
-    proyecto = models.ForeignKey(
-        'proyecto.Proyecto',
-        on_delete=models.CASCADE,
-        verbose_name="Proyecto",
-        help_text="Proyecto al que tiene acceso el usuario"
-    )
-
-    # Tipo de permiso (opcional, para futuras expansiones)
-    tipo_permiso = models.CharField(
-        max_length=50,
-        default='lectura',
-        verbose_name="Tipo de Permiso",
-        help_text="Tipo de permiso otorgado (lectura, escritura, etc.)"
-    )
-
-    class Meta:
-        verbose_name = "Permiso"
-        verbose_name_plural = "Permisos"
-        unique_together = ('usuario', 'proyecto')
-
-    def __str__(self):
-        return f"{self.usuario.username} - {self.proyecto.nombre} ({self.tipo_permiso})"
+    def create_superuser(self, username, fullname, password=None, **extra_fields):
+        extra_fields.setdefault(
+            'is_staff', True)
+        extra_fields.setdefault(
+            'is_superuser', True)
+        return self.create_user(username, fullname, password, **extra_fields)
 
 
 class Rol(FieldsTemplate):
@@ -66,10 +55,19 @@ class Rol(FieldsTemplate):
         return self.nombre
 
 
-class Usuarios(FieldsTemplate):
+class Usuarios(AbstractBaseUser, PermissionsMixin):
     """Modelo de Usuario
     Este modelo representa los usuarios del sistema.
     """
+    id = models.AutoField(
+        primary_key=True)
+    created_at = models.DateTimeField(
+        auto_now_add=True, verbose_name="Creado")
+    updated_at = models.DateTimeField(
+        auto_now=True, verbose_name="Actualizado")
+    date_joined = models.DateTimeField(
+        default=timezone.now)
+
     username = models.CharField(
         max_length=150,
         unique=True,
@@ -83,27 +81,56 @@ class Usuarios(FieldsTemplate):
         help_text="Nombre completo del usuario"
     )
 
+    email = models.CharField(
+        max_length=200,
+        default="",
+        null=True,
+        blank=True,
+        verbose_name="Correo electronico",
+        help_text="Dirección email del usuario"
+    )
+
     active = models.BooleanField(
-        default=False,
+        default=True,
         verbose_name="Activo",
         help_text="Indica si el usuario está activo"
     )
 
+    is_staff = models.BooleanField(
+        default=False)
+    is_active = models.BooleanField(
+        default=True)
+
     rol = models.ForeignKey(
         Rol,
+        null=True,
+        blank=True,
         on_delete=models.CASCADE,
         verbose_name="Rol",
         help_text="Rol del usuario"
     )
 
-    proyecto_principal = models.ForeignKey(
-        'proyecto.Proyecto',
+    obra_principal = models.ForeignKey(
+        'obra.Obra',
         on_delete=models.CASCADE,
         null=True,
         blank=True,
-        verbose_name="Proyecto Principal",
-        help_text="Proyecto principal al que pertenece el usuario"
+        verbose_name="Obra Principal",
+        help_text="Obra principal al que pertenece el usuario"
     )
+
+    obras_permitidas = models.ManyToManyField(
+        Obra,
+        related_name='usuarios_permitidos',
+        verbose_name="Obras Permitidas",
+        help_text="Obras a las que el usuario tiene acceso"
+    )
+
+    objects = UsuariosManager()
+
+    USERNAME_FIELD = 'username'
+    REQUIRED_FIELDS = [
+        'fullname']
 
     class Meta:
         verbose_name = "Usuario"
@@ -111,3 +138,8 @@ class Usuarios(FieldsTemplate):
 
     def __str__(self):
         return f"{self.fullname} ({self.username})"
+
+    @property
+    def is_approved(self):
+        """Propiedad para verificar si el usuario está aprobado (activo)"""
+        return self.active
