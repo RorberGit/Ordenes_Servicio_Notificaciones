@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent } from '@/components/ui/card'
@@ -13,8 +13,9 @@ import { useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
 import { useWork } from '@/context/WorkContext'
 import { useAuth } from '@/context/AuthContext'
+import { logger } from '@/lib/logger'
 
-const Login: React.FC = () => {
+export default function Login() {
   const { mutate, isPending, error, isError, isSuccess, data } = useLogin()
   const [showPassword, setShowPassword] = useState(false)
   const navigate = useNavigate()
@@ -52,7 +53,7 @@ const Login: React.FC = () => {
 
     if (isSuccess && data) {
       toast.success('Login exitoso')
-      console.log('Login data:', JSON.stringify(data, null, 2))
+      logger.info('Login data:', JSON.stringify(data, null, 2))
       if (data.user) {
         login(data.user, {
           access_token: data.access_token || '',
@@ -71,7 +72,6 @@ const Login: React.FC = () => {
 
   return (
     <div className='flex min-h-screen items-center justify-center'>
-      {/* bg-gradient-to-br from-blue-50 via-white to-purple-50 p-4 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900' */}
       <div className='w-full max-w-md'>
         {/* Logo o imagen de la empresa */}
         <div className='mb-8 text-center'>
@@ -163,16 +163,7 @@ const Login: React.FC = () => {
             </Form>
           </CardContent>
         </Card>
-
-        {/* Footer */}
-        <div className='mt-8 text-center'>
-          <p className='text-xs text-gray-500 dark:text-gray-400'>
-            © 2024 ALMEST. Todos los derechos reservados.
-          </p>
-        </div>
       </div>
     </div>
   )
 }
-
-export default Login

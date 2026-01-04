@@ -1,16 +1,17 @@
 import { useEffect } from 'react'
-import { useApiQuery } from '@/hooks/useApiQuery'
+import { useApiQuery } from '@/hooks/useApiQuery-bueno'
 import { toast } from 'sonner'
-import type { UseFormReturn } from 'react-hook-form'
+import { type UseFormReturn } from 'react-hook-form'
 import type { ZodSchemaTypeOS } from '../lib/ZodSchema'
 import type { TiposContenidoResponse } from '../types'
 import type { EspecialidadesResponse } from '@/pages/types/types-comun'
 import type { NotificationsResponse } from '@/pages/notifications/types'
 
-export function useQueyServicesOrder(form: UseFormReturn<ZodSchemaTypeOS>) {
-  const watchedContenido = form.watch('tipo_contenido')
-  const watchedLlevaRespuesta = form.watch('lleva_respuesta') as boolean
-
+export function useQueyServicesOrder(
+  form: UseFormReturn<ZodSchemaTypeOS>,
+  watchedLlevaRespuesta: boolean | undefined,
+  watchedContenido: string | undefined,
+) {
   // * API Tipo Contenido
   const {
     data: tiposContenidoData,
@@ -47,8 +48,6 @@ export function useQueyServicesOrder(form: UseFormReturn<ZodSchemaTypeOS>) {
     if (!watchedLlevaRespuesta) {
       form.setValue('notificacion', '', { shouldValidate: true })
       form.clearErrors('notificacion')
-      form.setValue('especialidad', [], { shouldValidate: true })
-      form.clearErrors('especialidad')
     }
   }, [watchedLlevaRespuesta, form])
 
@@ -68,12 +67,12 @@ export function useQueyServicesOrder(form: UseFormReturn<ZodSchemaTypeOS>) {
   }, [tiposContenidoError])
 
   useEffect(() => {
-    if (especialidadesError && watchedLlevaRespuesta && watchedContenido === 'Plano') {
+    if (especialidadesError && watchedContenido === 'Plano') {
       toast.error('Error al cargar especialidades', {
         description: 'Se usarán valores por defecto. Verifique su conexión.',
       })
     }
-  }, [especialidadesError, watchedLlevaRespuesta, watchedContenido])
+  }, [especialidadesError, watchedContenido])
 
   return {
     tiposContenidoData,

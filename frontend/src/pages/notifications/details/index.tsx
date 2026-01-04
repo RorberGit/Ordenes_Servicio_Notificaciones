@@ -1,6 +1,6 @@
 import { useParams } from 'react-router-dom'
 import { Skeleton } from '@/components/ui/skeleton'
-import { useApiQuery } from '@/hooks/useApiQuery'
+import { useApiQuery } from '@/hooks/useApiQuery-bueno'
 import { useNavigate } from 'react-router-dom'
 import type { Notification } from '../types'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -11,7 +11,7 @@ import HistoricosComp from './components/historico'
 import { Badge } from '@/components/ui/badge'
 import ButtonCompletar from './components/button-completar'
 import ButtonCancelar from './components/button-cancelar'
-import { useMemo } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import TiempoTranscurrido from '@/pages/components/tiempo-trascurrido'
 import dayjs from 'dayjs'
 import { useAuth } from '@/context/AuthContext'
@@ -20,6 +20,8 @@ export default function NotificationDetails() {
   const { id } = useParams<{ id: string }>()
 
   const navigate = useNavigate()
+
+  const [currentUserId, setCurrentUserId] = useState('')
   const { user } = useAuth()
 
   const {
@@ -29,12 +31,41 @@ export default function NotificationDetails() {
     refetch,
   } = useApiQuery<Notification>({
     url: `/notificaciones/getone?id=${id}`,
+    refetchOnMount: 'always',
   })
+
+  interface Usuario {
+    id: string
+    username: string
+    fullname: string
+  }
+
+  // * API Usuarios
+  const { data: usuarioData } = useApiQuery<Usuario[]>({
+    url: '/usuarios/users/',
+    queryKey: ['usuarios'],
+  })
+
+  // Poner el usuario actual desde el context
+  useEffect(() => {
+    if (user && usuarioData?.data) {
+      const currentUser = usuarioData.data.find(u => u.username === user.username)
+      if (currentUser) {
+        setCurrentUserId(`${currentUser.fullname} (${currentUser.username})`)
+      }
+    }
+  }, [user, usuarioData])
 
   const notification = notificationData?.data
 
   // * Constante para el control del Historico
   const historicos = useMemo(() => notification?.historicos ?? [], [notification?.historicos])
+
+  // Encontrar el user_id del creador (estado_id == 1)
+  const creatorUserId = historicos.find(h => h.estado === 'Creada')?.user
+
+  // Verificar si el usuario puede completar
+  const canComplete = user?.rol === 'A.Juridico' || currentUserId === creatorUserId
 
   if (isLoading) {
     return (
@@ -165,13 +196,12 @@ export default function NotificationDetails() {
           {notification?.estado_read === 'Creada' && user?.rol === 'A.Juridico' && (
             <ButtonEjecutar id={id} refetch={refetch} />
           )}
-          {notification?.estado_read === 'En Progreso' && (
+          {notification?.estado_read === 'En Progreso' && canComplete && (
             <ButtonCompletar id={id} refetch={refetch} />
           )}
           {notification.estado_read !== 'Completada' &&
-            notification.estado_read !== 'Cancelada' && (
-              <ButtonCancelar id={id} refetch={refetch} />
-            )}
+            notification.estado_read !== 'Cancelada' &&
+            canComplete && <ButtonCancelar id={id} refetch={refetch} />}
         </div>
         {/* Componente historico */}
         <HistoricosComp historicos={historicos} />

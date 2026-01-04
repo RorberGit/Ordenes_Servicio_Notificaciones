@@ -10,6 +10,12 @@ export interface Rol {
   descripcion?: string
 }
 
+interface Unidad {
+  id: string
+  cod: string
+  descripcion: string
+}
+
 export interface UsuarioResponse {
   id: number
   username: string
@@ -21,6 +27,7 @@ export interface UsuarioResponse {
   rol_nombre: string
   rol: string
   obras_permitidas: ObraPermitida[]
+  unidad: Unidad
 }
 
 export interface UsuarioPayload {
@@ -31,4 +38,16 @@ export interface UsuarioPayload {
   active: boolean
   rol: string // ID del rol
   obras_permitidas: string[]
+  unidad: string // ID de la unidad
+}
+
+export interface PaginatedResponse {
+  results: UsuarioResponse[]
+  pagination: {
+    count: number
+    next: string | null
+    previous: string | null
+    current_page: number
+    total_pages: number
+  }
 }

@@ -9,10 +9,12 @@ type Estado_valor =
 
 interface Historicos {
   estado?: Estado_valor
+  estado_id?: number
   fecha?: string
   id?: string
   resumen: string
   user: string
+  user_id?: string
 }
 
 type HistoricosResponse = Historicos[]

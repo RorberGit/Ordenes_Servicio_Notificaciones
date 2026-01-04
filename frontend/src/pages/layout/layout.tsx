@@ -1,19 +1,25 @@
 import { menu } from './menu'
 import Navbar from './navbar'
 import { Outlet } from 'react-router-dom'
-import React from 'react'
 import { useAuth } from '@/context/AuthContext'
 
 // ... (Tipado de LogoProps y definición de logo se mantienen igual)
 
-const Layout: React.FC = () => {
+export default function Layout() {
   const { user } = useAuth()
+
+  console.log('usuario', !!user)
 
   // Filtrar menú basado en el rol del usuario
   const filteredMenu = menu.filter(item => {
+    if (item.title === 'Operaciones') {
+      return !!user
+    }
+
     if (item.title === 'Configuración') {
       return user?.rol === 'Administrador'
     }
+
     return true
   })
 
@@ -38,10 +44,8 @@ const Layout: React.FC = () => {
 
       {/* FOOTER: Fijo y siempre visible (no se desplaza) */}
       <footer className='bg-muted text-muted-foreground flex h-12 flex-shrink-0 items-center justify-center border-t text-center text-xs'>
-        <p>&copy; {new Date().getFullYear()} Nombre de la Aplicación | Pie de página estándar.</p>
+        <p>&copy; 2025 Plataforma digital ALMEST | Desarrollado en UBI-RA.</p>
       </footer>
     </div>
   )
 }
-
-export default Layout

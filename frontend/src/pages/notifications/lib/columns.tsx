@@ -1,6 +1,6 @@
 import { Button } from '@/components/ui/button'
 import { type ColumnDef } from '@tanstack/react-table'
-import { ArrowUpDown, ArrowUp, ArrowDown, View } from 'lucide-react'
+import { ArrowUpDown, ArrowUp, ArrowDown, LucideView } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import type { Notification } from '../types'
 import { getStatusBadgeClasses } from '@/pages/utils/status-class-utils'
@@ -93,8 +93,9 @@ export const getColumns = (navigate: (path: string) => void): ColumnDef<Notifica
             size='sm'
             variant='default'
             onClick={() => navigate(`/notifications/details/${order.id}`)}
+            title='Detalles'
           >
-            <View />
+            <LucideView />
           </Button>
         </div>
       )

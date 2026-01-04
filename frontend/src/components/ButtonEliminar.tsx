@@ -20,7 +20,7 @@ import type { ApiResponse } from '@/services/apiClient'
 interface ButtonEliminarProps<TData = unknown> {
   endpoint: string
   id: string | number
-  nombre: string
+  nombre: string | undefined
   refetch: (options?: RefetchOptions) => Promise<QueryObserverResult<ApiResponse<TData>, Error>>
 }
 

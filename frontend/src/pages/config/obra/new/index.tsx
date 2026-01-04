@@ -11,8 +11,9 @@ import { useEffect } from 'react'
 import { toast } from 'sonner'
 import type { ObraResponse, ObraPayload } from '../view/types'
 import { useNavigate, useSearchParams } from 'react-router-dom'
-import { useApiQuery } from '@/hooks/useApiQuery'
+import { useApiQuery } from '@/hooks/useApiQuery-bueno'
 import type { ApiError } from '@/pages/types/types-comun'
+import { logger } from '@/lib/logger'
 
 const obraSchema = z.object({
   nombre: z.string().min(1, 'El nombre es requerido'),
@@ -62,7 +63,7 @@ export default function FormNewObra() {
       navigate('/config/obra/view', { replace: true, state: { refresh: true } })
     },
     onError: error => {
-      console.error('Error al crear la obra:', error)
+      logger.error('Error al crear la obra:', error)
       const apiError = error as ApiError
       const errorMessage = apiError.response?.data?.message || 'Ha ocurrido un error inesperado'
       toast.error('Error al crear la obra', {
@@ -82,7 +83,7 @@ export default function FormNewObra() {
         navigate('/config/obra/view', { replace: true, state: { refresh: true } })
       },
       onError: error => {
-        console.error('Error al actualizar la obra:', error)
+        logger.error('Error al actualizar la obra:', error)
         const apiError = error as ApiError
         const errorMessage = apiError.response?.data?.message || 'Ha ocurrido un error inesperado'
         toast.error('Error al actualizar la obra', {

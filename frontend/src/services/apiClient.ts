@@ -1,107 +1,169 @@
+// apiClient.ts
 import axios from 'axios'
-import type { AxiosInstance, AxiosResponse } from 'axios'
+import type {
+  AxiosInstance,
+  AxiosResponse,
+  AxiosError,
+  AxiosRequestConfig,
+  InternalAxiosRequestConfig,
+} from 'axios'
 import { authService } from './authService'
+import { logger } from '@/lib/logger'
 
-// Configuración base de Axios
-const apiClient: AxiosInstance = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:8000',
+// 1. Instancia de Axios sin configurar (solo con las opciones base)
+let apiClient: AxiosInstance = axios.create({
   timeout: 10000,
   headers: {
     'Content-Type': 'application/json',
   },
 })
 
-// Interceptor para agregar token de autenticación si existe
-apiClient.interceptors.request.use(
-  config => {
-    const access_token = authService.getAccessToken()
+// 2. Variable para almacenar la URL cargada
+export let API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000'
+// Se mantiene VITE_API_URL como fallback para el entorno de desarrollo
 
-    console.log('token en uso =>', access_token)
-
-    if (access_token) {
-      config.headers.Authorization = `Bearer ${access_token}`
+// 3. Función para cargar la configuración desde public/config.json
+const loadConfig = async () => {
+  try {
+    const response = await fetch('/config.json')
+    if (!response.ok) {
+      throw new Error('Config file not found or failed to load')
     }
-    return config
-  },
-  error => {
-    return Promise.reject(error)
-  },
-)
+    const config = await response.json()
 
-// Interceptor para manejar errores de respuesta
-apiClient.interceptors.response.use(
-  (response: AxiosResponse) => {
-    console.log('Response apiClient =>', response)
-    // Manejar respuestas exitosas
-    return response
-  },
-  async error => {
-    console.log('Errores response API', error)
+    // Asignar la URL cargada al cliente
+    API_BASE_URL = config.api_url || API_BASE_URL
 
-    const originalRequest = error.config
+    // **IMPORTANTE**: Reconfigurar la instancia de apiClient con el nuevo baseURL
+    apiClient = axios.create({
+      baseURL: API_BASE_URL,
+      timeout: 10000,
+      headers: { 'Content-Type': 'application/json' },
+    })
 
-    if (error.response?.status === 401 && !originalRequest._retry) {
-      originalRequest._retry = true
+    // Aplicar interceptores a la nueva instancia
+    apiClient.interceptors.request.use(setupRequestInterceptor, error => Promise.reject(error))
+    apiClient.interceptors.response.use((response: AxiosResponse) => {
+      logger.info('Response apiClient =>', response)
+      return response
+    }, setupResponseInterceptor)
+  } catch (error) {
+    logger.error('Error al cargar config.json. Usando URL por defecto:', API_BASE_URL, error)
+  }
+}
 
-      // Obtener el refresh tokens
-      const refreshToken = authService.getRefreshToken()
+// 4. Promesa que garantiza que la configuración se ha cargado
+// Esto se usa en el servicio HTTP para esperar la carga.
+const configLoadedPromise = loadConfig()
 
-      if (refreshToken) {
-        try {
-          const { data } = await axios.post(`${apiClient.defaults.baseURL}/auth/refresh/`, {
-            refresh: refreshToken,
-          })
+// 5. Función de Interceptor para Solicitudes
+// Nota: Esta función debe ser genérica y se aplicará a la instancia después de loadConfig()
+const setupRequestInterceptor = (config: InternalAxiosRequestConfig) => {
+  const access_token = authService.getAccessToken()
 
-          // Almacenar nuevos tokens
-          authService.setTokens(data.access, data.refresh)
+  if (access_token) {
+    config.headers = config.headers || {}
+    config.headers.Authorization = `Bearer ${access_token}`
+  }
+  return config
+}
 
-          //apiClient.defaults.headers.common.Authorization = `Bearer ${data.access}`
-          //? Actualizar la solicitud con el nuevo token
-          originalRequest.headers.Authorization = `Bearer ${data.access}`
+// 6. Función de Interceptor para Respuestas (Manejo de 401)
+const setupResponseInterceptor = async (error: AxiosError) => {
+  logger.error('Errores response API', error)
 
-          return apiClient(originalRequest)
-        } catch (error) {
-          console.error('Error interceptor refresh :> ', error)
+  const originalRequest = error.config as InternalAxiosRequestConfig & { _retry?: boolean }
 
-          authService.clear()
+  if (error.response?.status === 401 && originalRequest && !originalRequest._retry) {
+    originalRequest._retry = true
 
-          window.location.href = '/login'
-        }
+    const refreshToken = authService.getRefreshToken()
+
+    if (refreshToken) {
+      try {
+        // **ATENCIÓN**: Usamos la variable API_BASE_URL aquí, no apiClient.defaults.baseURL
+        // ya que esta última puede no estar actualizada si usamos la instancia inicial.
+        const { data } = await apiClient.post('/auth/refresh/', {
+          refresh: refreshToken,
+        })
+
+        authService.setTokens(data.access, data.refresh)
+        apiClient.defaults.headers.common.Authorization = `Bearer ${data.access}`
+
+        originalRequest.headers.Authorization = `Bearer ${data.access}`
+
+        // Llamar a la nueva instancia de apiClient, que ya tiene la baseURL correcta
+        return apiClient(originalRequest as AxiosRequestConfig)
+      } catch (err) {
+        logger.error('Error interceptor refresh :> ', err)
+        authService.clear()
+        window.location.href = '/login'
+        return Promise.reject(err)
       }
     }
+  }
 
-    return Promise.reject(error)
+  return Promise.reject(error)
+}
+
+// 8. Servicio genérico envuelto en una función ASÍNCRONA que espera la carga
+export const httpService = {
+  get: async <T = unknown>(
+    url: string,
+    params?: Record<string, unknown>,
+  ): Promise<AxiosResponse<T>> => {
+    await configLoadedPromise // Esperar a que la configuración esté lista
+    return apiClient.get(url, { params })
   },
-)
 
-// Tipos para las respuestas
+  post: async <T = unknown>(url: string, data?: unknown): Promise<AxiosResponse<T>> => {
+    await configLoadedPromise
+
+    // Si data es FormData, usar configuración sin Content-Type
+    if (data instanceof FormData) {
+      return apiClient.post(url, data, {
+        headers: {
+          //Authorization: apiClient.defaults.headers.Authorization,
+          'Content-Type': undefined,
+        },
+      })
+    }
+
+    return apiClient.post(url, data)
+  },
+
+  put: async <T = unknown>(url: string, data?: unknown): Promise<AxiosResponse<T>> => {
+    await configLoadedPromise
+
+    // Si data es FormData, usar configuración sin Content-Type
+    if (data instanceof FormData) {
+      return apiClient.put(url, data, {
+        headers: {
+          //Authorization: apiClient.defaults.headers.Authorization,
+          'Content-Type': undefined,
+        },
+      })
+    }
+
+    return apiClient.put(url, data)
+  },
+
+  delete: async <T = unknown>(url: string): Promise<AxiosResponse<T>> => {
+    await configLoadedPromise
+    return apiClient.delete(url)
+  },
+
+  patch: async <T = unknown>(url: string, data?: unknown): Promise<AxiosResponse<T>> => {
+    await configLoadedPromise
+    return apiClient.patch(url, data)
+  },
+}
+
+// Tipos de respuesta
 export interface ApiResponse<T = unknown> {
   data: T
   message?: string
   success: boolean
-}
-
-// Servicio genérico para hacer solicitudes HTTP
-export const httpService = {
-  get: <T = unknown>(url: string, params?: Record<string, unknown>): Promise<AxiosResponse<T>> => {
-    return apiClient.get(url, { params })
-  },
-
-  post: <T = unknown>(url: string, data?: unknown): Promise<AxiosResponse<T>> => {
-    return apiClient.post(url, data)
-  },
-
-  put: <T = unknown>(url: string, data?: unknown): Promise<AxiosResponse<T>> => {
-    return apiClient.put(url, data)
-  },
-
-  delete: <T = unknown>(url: string): Promise<AxiosResponse<T>> => {
-    return apiClient.delete(url)
-  },
-
-  patch: <T = unknown>(url: string, data?: unknown): Promise<AxiosResponse<T>> => {
-    return apiClient.patch(url, data)
-  },
 }
 
 export default apiClient

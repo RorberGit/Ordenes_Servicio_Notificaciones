@@ -11,6 +11,11 @@ export interface ObraPermitida {
   tipo_permiso: 'lectura' | 'escritura'
 }
 
+interface Unidad {
+  cod: string
+  descripcion: string
+}
+
 export interface UserContext {
   username: string
   fullname: string
@@ -18,6 +23,7 @@ export interface UserContext {
   email: string
   rol: string
   obras_permitidas?: string[]
+  unidad?: string
 }
 export interface UserData {
   username: string
@@ -25,6 +31,7 @@ export interface UserData {
   obra_principal_nombre: string
   email: string
   rol_nombre: Role
+  unidad: Unidad
   obras_permitidas?: {
     id: string
     created_at: string

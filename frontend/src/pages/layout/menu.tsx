@@ -12,15 +12,21 @@ export const menu: MenuItem[] = [
     url: '#',
     items: [
       {
-        title: 'Ver ordenes de servicio',
+        title: 'Ordenes de servicio',
         description: 'Mostrar los registros existentes',
         url: 'serviceorder/view',
         icon: <View size={32} color='#FF5733' />,
       },
       {
-        title: 'Ver notificaciones',
+        title: 'Notificaciones',
         description: 'Mostrar los registros existentes',
         url: 'notifications/view',
+        icon: <View size={32} color='#FF5733' />,
+      },
+      {
+        title: 'REGA',
+        description: 'Mostrar los registros REGA existentes',
+        url: 'rega/view',
         icon: <View size={32} color='#FF5733' />,
       },
       {
@@ -36,6 +42,12 @@ export const menu: MenuItem[] = [
     url: '#',
     items: [
       {
+        title: 'Unidades',
+        description: 'Gestionar unidades',
+        url: 'config/unidad/view',
+        icon: <View size={32} color='#FF5733' />,
+      },
+      {
         title: 'Obra',
         description: 'Gestionar obras',
         url: 'config/obra/view',
@@ -49,8 +61,20 @@ export const menu: MenuItem[] = [
       },
       {
         title: 'Tipo Contenido',
-        description: 'Gestionar tipos de contenido',
+        description: 'Gestionar tipos de contenidos',
         url: 'config/tipo-contenido/view',
+        icon: <View size={32} color='#FF5733' />,
+      },
+      {
+        title: 'Tipo documento',
+        description: 'Gestionar tipos de dodumentos',
+        url: 'config/tipo-documento/view',
+        icon: <View size={32} color='#FF5733' />,
+      },
+      {
+        title: 'Procedencias o Destinos',
+        description: 'Gestionar tipos de dodumentos',
+        url: 'config/procedencia-destino/view',
         icon: <View size={32} color='#FF5733' />,
       },
       {

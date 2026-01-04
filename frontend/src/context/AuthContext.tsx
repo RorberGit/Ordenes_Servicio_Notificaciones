@@ -3,6 +3,7 @@
 import React, { createContext, useContext, useState, type ReactNode } from 'react'
 import type { UserData, AuthContextType, Tokens, UserContext } from '../types/auth' // Importa tus tipos
 import { authService } from '@/services/authService'
+import { logger } from '@/lib/logger'
 
 // Función para obtener los iniciales del usuario desde localStorage
 const getInitialUser = (): UserContext | null => {
@@ -10,7 +11,7 @@ const getInitialUser = (): UserContext | null => {
     const storedData = authService.getUser()
     if (storedData) return storedData
   } catch (error) {
-    console.error('Error al leer datos de localStorage:', error)
+    logger.error('Error al leer datos de localStorage:', error)
   }
   return null
 }
@@ -35,6 +36,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       obra_principal: userData.obra_principal_nombre,
       email: userData.email,
       rol: userData.rol_nombre,
+      unidad: userData.unidad.descripcion,
       obras_permitidas: userData.obras_permitidas?.map(obra => obra.nombre),
     }
 

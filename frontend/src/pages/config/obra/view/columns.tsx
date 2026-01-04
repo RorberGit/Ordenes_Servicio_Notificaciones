@@ -1,40 +1,28 @@
-import { createColumnHelper } from '@tanstack/react-table'
+import { type ColumnDef } from '@tanstack/react-table'
 import { Button } from '@/components/ui/button'
 import { Eye, Edit } from 'lucide-react'
-import type { ObraResponse } from './types'
+import type { ObraResponse, PaginatedResponse } from './types'
 import type { QueryObserverResult, RefetchOptions } from '@tanstack/react-query'
 import type { ApiResponse } from '@/services/apiClient'
 import ButtonEliminar from '@/components/ButtonEliminar'
 
-const columnHelper = createColumnHelper<ObraResponse>()
-
 export const getColumns = (
   navigate: (path: string) => void,
-  refetch: (options?: RefetchOptions) => Promise<
-    QueryObserverResult<
-      ApiResponse<{
-        results: ObraResponse[]
-        pagination: {
-          count: number
-          next: string | null
-          previous: string | null
-          current_page: number
-          total_pages: number
-        }
-      }>,
-      Error
-    >
-  >,
-) => [
-  columnHelper.accessor('nombre', {
+  refetch: (
+    options?: RefetchOptions,
+  ) => Promise<QueryObserverResult<ApiResponse<PaginatedResponse>, Error>>,
+): ColumnDef<ObraResponse>[] => [
+  {
+    accessorKey: 'nombre',
     header: 'Nombre',
     cell: info => info.getValue(),
-  }),
-  columnHelper.accessor('descripcion', {
+  },
+  {
+    accessorKey: 'descripcion',
     header: 'Descripción',
     cell: info => info.getValue() || 'Sin descripción',
-  }),
-  columnHelper.display({
+  },
+  {
     id: 'actions',
     header: 'Acciones',
     cell: ({ row }) => (
@@ -61,5 +49,5 @@ export const getColumns = (
         />
       </div>
     ),
-  }),
+  },
 ]

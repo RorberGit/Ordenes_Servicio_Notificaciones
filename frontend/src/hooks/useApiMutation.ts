@@ -1,6 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import type { UseMutationOptions, UseMutationResult } from '@tanstack/react-query'
 import { httpService, type ApiResponse } from '@/services/apiClient'
+import { logger } from '@/lib/logger'
 
 // Tipos para las operaciones de mutación
 export type MutationMethod = 'POST' | 'PUT' | 'PATCH' | 'DELETE'
@@ -62,7 +63,7 @@ export function useApiMutation<TData = unknown, TVariables = unknown>({
       }
     },
     onError: (error, variables, context, mutation) => {
-      console.error(`Error en ${method} ${url}:`, error)
+      logger.error(`Error en ${method} ${url}:`, error)
 
       // Ejecutar callback personalizado
       if (onError) {

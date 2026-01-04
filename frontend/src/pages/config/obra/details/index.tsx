@@ -1,6 +1,6 @@
 import { useParams } from 'react-router-dom'
 import { Skeleton } from '@/components/ui/skeleton'
-import { useApiQuery } from '@/hooks/useApiQuery'
+import { useApiQuery } from '@/hooks/useApiQuery-bueno'
 import { useNavigate } from 'react-router-dom'
 import type { ObraResponse } from '../view/types'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -20,6 +20,7 @@ export default function ObraDetails() {
     refetch,
   } = useApiQuery<ObraResponse>({
     url: `/obras/getone?id=${id}`,
+    refetchOnMount: 'always',
   })
 
   const obra = obraData?.data

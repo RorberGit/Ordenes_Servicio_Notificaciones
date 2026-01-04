@@ -39,10 +39,30 @@ interface TipoContenido {
 // Tipo para la respuesta de tipos de contenido
 type TiposContenidoResponse = TipoContenido[]
 
+interface PaginatedResponse {
+  results: ServicesOrderResponse
+  pagination: {
+    count: number
+    next: string | null
+    previous: string | null
+    current_page: number
+    total_pages: number
+  }
+}
+
 export type {
   ServiceOrder,
   ServicesOrderResponse,
   ServiceOrderPayload,
   TipoContenido,
   TiposContenidoResponse,
+  PaginatedResponse,
+}
+
+export const defaultValues = {
+  asunto: '',
+  notificacion: '',
+  tipo_contenido: '',
+  lleva_respuesta: false,
+  especialidad: [],
 }

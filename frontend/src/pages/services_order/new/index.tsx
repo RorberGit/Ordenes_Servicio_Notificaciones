@@ -1,22 +1,24 @@
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { useForm } from 'react-hook-form'
+import { useForm, useWatch } from 'react-hook-form'
 import { ZodResolverOS, type ZodSchemaTypeOS } from '../lib/ZodSchema'
 import { Form } from '@/components/ui/form'
-import { TextareaFormField } from '@/components/form-fields/TextareaFormField'
-import { SelectFormField } from '@/components/form-fields/SelectFormField'
-import { AutocompleteFormField } from '@/components/form-fields/AutocompleteFormField'
-import { MultiSelectFormField } from '@/components/form-fields/MultiSelectFormField'
-import { CheckboxFormField } from '@/components/form-fields/CheckboxFormField'
 import { useCreateRecord } from '@/hooks/useApiMutation'
-import { useEffect } from 'react'
 import { toast } from 'sonner'
-import type { ServiceOrder, ServiceOrderPayload } from '../types'
+import { defaultValues, type ServiceOrder, type ServiceOrderPayload } from '../types'
 import { useAuth } from '@/context/AuthContext'
 import { useNavigate } from 'react-router-dom'
 import { useWork } from '@/context/WorkContext'
 import { useQueyServicesOrder } from '../hooks/use-QueryServicesOrder'
 import type { ApiError } from '@/pages/types/types-comun'
+import { logger } from '@/lib/logger'
+import {
+  TextareaFormField,
+  AutocompleteFormField,
+  CheckboxFormField,
+  MultiSelectFormField,
+  SelectFormField,
+} from '@/components/form-fields'
 
 export default function FormNewOS() {
   const navigate = useNavigate()
@@ -26,14 +28,12 @@ export default function FormNewOS() {
 
   const form = useForm<ZodSchemaTypeOS>({
     resolver: ZodResolverOS,
-    defaultValues: {
-      asunto: '',
-      notificacion: undefined,
-      tipo_contenido: '',
-      lleva_respuesta: false,
-      especialidad: [],
-    },
+    defaultValues: defaultValues,
   })
+
+  // Observa el los cambios en el contenido de lleva respuesta y tipo de contenido
+  const watchedLlevaRespuesta = useWatch({ control: form.control, name: 'lleva_respuesta' })
+  const watchedContenido = useWatch({ control: form.control, name: 'tipo_contenido' })
 
   const {
     tiposContenidoData,
@@ -45,7 +45,7 @@ export default function FormNewOS() {
     notificacionesData,
     isLoadingNotificaciones,
     notificacionesError,
-  } = useQueyServicesOrder(form)
+  } = useQueyServicesOrder(form, watchedLlevaRespuesta, watchedContenido)
 
   // Hook para crear la orden de servicio
   const createOrderMutation = useCreateRecord<ServiceOrder, ServiceOrderPayload>(
@@ -61,7 +61,7 @@ export default function FormNewOS() {
         navigate('/serviceorder/view', { replace: true, state: { refresh: true } })
       },
       onError: error => {
-        console.error('Error al crear la orden de servicio:', error)
+        logger.error('Error al crear la orden de servicio:', error)
         const apiError = error as ApiError
         const errorMessage = apiError.response?.data?.message || 'Ha ocurrido un error inesperado'
         toast.error('Error al crear la orden de servicio', {
@@ -71,37 +71,25 @@ export default function FormNewOS() {
     },
   )
 
-  // Observa el valor del campo 'tipo_contenido'
-  const watchedContenido = form.watch('tipo_contenido')
-  const watchedLlevaRespuesta = form.watch('lleva_respuesta')
-
-  /*
-   * Si lleva respuesta es falso Limpiar los componentes notificacion, tipo_contenido y especialidad
-   */
-  useEffect(() => {
-    if (!watchedLlevaRespuesta) {
-      // Limpiar campos
-      form.setValue('notificacion', '', { shouldValidate: true })
-      form.clearErrors('notificacion')
-      form.setValue('tipo_contenido', '', { shouldValidate: true })
-      form.clearErrors('tipo_contenido')
-      form.setValue('especialidad', [], { shouldValidate: true })
-      form.clearErrors('especialidad')
-    }
-  }, [form, watchedLlevaRespuesta])
-
   // Función onSubmit del formulario
   const onSubmit = (values: ZodSchemaTypeOS) => {
     // Preparar los datos para enviar al API
     const dataToSend: ServiceOrderPayload = {
       estado: 1,
       asunto: values.asunto,
-      tipo_contenido: values.tipo_contenido || '',
-      ...(values.notificacion && { notificacion: values.notificacion || '' }),
-      ...(values.lleva_respuesta && { lleva_respuesta: values.lleva_respuesta }),
-      ...(values.especialidad && { especialidad: values.especialidad || [] }),
       username: user?.username,
       obra: activeWork,
+      tipo_contenido: values.tipo_contenido || '',
+      ...(watchedLlevaRespuesta && {
+        lleva_respuesta: true,
+        ...(values.notificacion && { notificacion: values.notificacion }),
+      }),
+      ...(watchedContenido === 'Plano' &&
+        values.especialidad &&
+        values.especialidad?.length > 0 && {
+          especialidad: values.especialidad,
+        }),
+      ...(values.especialidad && { especialidad: values.especialidad || [] }),
     }
 
     // Enviar los datos al API
@@ -159,7 +147,7 @@ export default function FormNewOS() {
                 />
               )}
 
-            {/* Tipo de Contenido - Solo si lleva respuesta */}
+            {/* Tipo de Contenido */}
             <SelectFormField
               control={form.control}
               name='tipo_contenido'

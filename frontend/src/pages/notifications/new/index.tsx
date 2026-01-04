@@ -1,23 +1,26 @@
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { useForm } from 'react-hook-form'
+import { useForm, useWatch } from 'react-hook-form'
 import { ZodResolverNotification, type ZodSchemaTypeNotification } from '../lib/ZodSchema'
 import { Form } from '@/components/ui/form'
-import { InputFormField } from '@/components/form-fields/InputFormField'
-import { TextareaFormField } from '@/components/form-fields/TextareaFormField'
-import { SelectFormField } from '@/components/form-fields/SelectFormField'
-import { CheckboxFormField } from '@/components/form-fields/CheckboxFormField'
+import {
+  AutocompleteFormField,
+  CheckboxFormField,
+  InputFormField,
+  MultiSelectFormField,
+  SelectFormField,
+  TextareaFormField,
+} from '@/components/form-fields/'
 import { useCreateRecord } from '@/hooks/useApiMutation'
 import { toast } from 'sonner'
-import type { Notification, NotificationPayload } from '../types'
+import { defaultValues, type Notification, type NotificationPayload } from '../types'
 import { useEffect } from 'react'
-import { AutocompleteFormField } from '@/components/form-fields/AutocompleteFormField'
 import { useAuth } from '@/context/AuthContext'
 import { useWork } from '@/context/WorkContext'
 import { useNavigate } from 'react-router-dom'
 import useQueryNotication from '../hooks/use-QueryNotication'
 import type { ApiError } from '@/pages/types/types-comun'
-import { MultiSelectFormField } from '@/components/form-fields/MultiSelectFormField'
+import { logger } from '@/lib/logger'
 
 export default function FormNewNotification() {
   const navigate = useNavigate()
@@ -26,15 +29,13 @@ export default function FormNewNotification() {
 
   const form = useForm<ZodSchemaTypeNotification>({
     resolver: ZodResolverNotification,
-    defaultValues: {
-      numero_notificacion: undefined,
-      asunto: '',
-      lleva_respuesta: false,
-      numero_orden_respuesta: '',
-      especialidad: [],
-      tipo_respuesta: '',
-    },
+    defaultValues: defaultValues,
   })
+
+  // Observa los valores de los campos para renderizado condicional
+  const watchedLlevaRespuesta = useWatch({ control: form.control, name: 'lleva_respuesta' })
+  // Observa el valor del campo 'tipo_contenido'
+  const watchedTipoRespuesta = useWatch({ control: form.control, name: 'tipo_respuesta' })
 
   const {
     ordenServicioData,
@@ -46,12 +47,7 @@ export default function FormNewNotification() {
     especialidadesData,
     isLoadingEspecialidades,
     especialidadesError,
-  } = useQueryNotication()
-
-  // Observa los valores de los campos para renderizado condicional
-  const watchedLlevaRespuesta = form.watch('lleva_respuesta')
-  // Observa el valor del campo 'tipo_contenido'
-  const watchedTipoRespuesta = form.watch('tipo_respuesta')
+  } = useQueryNotication(watchedLlevaRespuesta, watchedTipoRespuesta)
 
   /*
    * Si lleva respuesta es falso Limpiar los componentes numero de orden que responde y especialidad
@@ -61,12 +57,18 @@ export default function FormNewNotification() {
       // Limpiar campo Número de Orden que responde
       form.setValue('numero_orden_respuesta', '', { shouldValidate: true })
       form.clearErrors('numero_orden_respuesta')
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [watchedLlevaRespuesta])
+
+  // * ✅ Verifica si tipo de contenido es Plano
+  useEffect(() => {
+    if (watchedTipoRespuesta !== 'Plano') {
       form.setValue('especialidad', [], { shouldValidate: true })
       form.clearErrors('especialidad')
-      form.setValue('tipo_respuesta', '', { shouldValidate: true })
-      form.clearErrors('tipo_respuesta')
     }
-  }, [form, watchedLlevaRespuesta])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [watchedTipoRespuesta])
 
   // Hook para crear la notificación
   const createNotificationMutation = useCreateRecord<Notification, NotificationPayload>(
@@ -81,7 +83,7 @@ export default function FormNewNotification() {
         navigate('/notifications/view', { replace: true, state: { refresh: true } })
       },
       onError: error => {
-        console.error('Error al crear la notificación:', error)
+        logger.error('Error al crear la notificación:', error)
         const apiError = error as ApiError
         const errorMessage = apiError.response?.data?.message || 'Ha ocurrido un error inesperado'
         toast.error('Error al crear la notificación', {
@@ -95,15 +97,18 @@ export default function FormNewNotification() {
     // Preparar los datos para enviar al API
     const dataToSend: NotificationPayload = {
       numero_notificacion: values.numero_notificacion,
-      lleva_respuesta: values.lleva_respuesta,
-      // Incluir campos opcionales solo si tienen valor
-      ...(values.asunto && values.asunto.trim() !== '' && { asunto: values.asunto }),
-      ...(values.numero_orden_respuesta && {
-        numero_orden_respuesta: values.numero_orden_respuesta,
+      asunto: values.asunto,
+      ...(watchedLlevaRespuesta && {
+        lleva_respuesta: true,
+        ...(values.numero_orden_respuesta && {
+          numero_orden_respuesta: values.numero_orden_respuesta,
+        }),
       }),
       ...(values.tipo_respuesta && { tipo_respuesta: values.tipo_respuesta }),
-      ...(values.especialidad &&
-        values.especialidad.length > 0 && { especialidad: values.especialidad }),
+      ...(watchedTipoRespuesta === 'Plano' && {
+        ...(values.especialidad &&
+          values.especialidad.length > 0 && { especialidad: values.especialidad }),
+      }),
       username: user?.username,
       estado: 1,
       obra: activeWork,
@@ -177,7 +182,7 @@ export default function FormNewNotification() {
             <SelectFormField
               control={form.control}
               name='tipo_respuesta'
-              label='Tipo de Respuesta'
+              label='Tipo de contenido'
               placeholder={
                 isLoadingTiposRespuesta
                   ? 'Cargando tipos de respuesta...'
@@ -194,7 +199,7 @@ export default function FormNewNotification() {
             />
 
             {/* Especialidades - Solo si lleva respuesta */}
-            {watchedLlevaRespuesta && watchedTipoRespuesta === 'Plano' && (
+            {watchedTipoRespuesta === 'Plano' && (
               <MultiSelectFormField
                 control={form.control}
                 name='especialidad'

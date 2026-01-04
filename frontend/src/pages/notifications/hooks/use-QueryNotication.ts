@@ -1,11 +1,14 @@
-import { useApiQuery } from '@/hooks/useApiQuery'
+import { useApiQuery } from '@/hooks/useApiQuery-bueno'
 import type { ServicesOrderResponse } from '@/pages/services_order/types'
 import type { TiposDeRespuestaResponse } from '../types'
 import { useEffect } from 'react'
 import { toast } from 'sonner'
 import type { EspecialidadesResponse } from '@/pages/types/types-comun'
 
-export default function useQueryNotication() {
+export default function useQueryNotication(
+  watchedLlevaRespuesta: boolean | undefined,
+  watchedTipoRespuesta: string | undefined,
+) {
   // Hook para obtener las Ordenes de servicio
   const {
     data: ordenServicioData,
@@ -14,6 +17,7 @@ export default function useQueryNotication() {
   } = useApiQuery<ServicesOrderResponse>({
     url: '/ordenes/getall/',
     queryKey: ['ordenesservicio'],
+    enabled: watchedLlevaRespuesta,
   })
 
   useEffect(() => {
@@ -49,6 +53,7 @@ export default function useQueryNotication() {
   } = useApiQuery<EspecialidadesResponse>({
     url: '/especialidades/getall/',
     queryKey: ['nespecialidades'],
+    enabled: watchedTipoRespuesta === 'Plano',
   })
 
   useEffect(() => {

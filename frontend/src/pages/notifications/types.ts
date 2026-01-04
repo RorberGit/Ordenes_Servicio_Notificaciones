@@ -43,10 +43,31 @@ interface TipoDeRespuesta {
 // Tipo para la respuesta de tipos de respuesta
 type TiposDeRespuestaResponse = TipoDeRespuesta[]
 
+interface PaginatedResponse {
+  results: NotificationsResponse
+  pagination: {
+    count: number
+    next: string | null
+    previous: string | null
+    current_page: number
+    total_pages: number
+  }
+}
+
+export const defaultValues = {
+  numero_notificacion: undefined,
+  asunto: '',
+  lleva_respuesta: false,
+  numero_orden_respuesta: '',
+  especialidad: [],
+  tipo_respuesta: '',
+}
+
 export type {
   Notification,
   NotificationsResponse,
   NotificationPayload,
   TipoDeRespuesta,
   TiposDeRespuestaResponse,
+  PaginatedResponse,
 }

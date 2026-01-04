@@ -2,6 +2,7 @@
 
 import React, { createContext, useContext, useState, type ReactNode } from 'react'
 import { useAuth } from './AuthContext' // Para acceder a los obras disponibles
+import { logger } from '@/lib/logger'
 
 // -----------------------------------------------------
 // Clave para localStorage del obra ACTIVO
@@ -20,7 +21,7 @@ const getInitialWork = (): string | null => {
   try {
     return localStorage.getItem(WORK_STORAGE_KEY)
   } catch (error) {
-    console.error('Error al leer el obra activa:', error)
+    logger.error('Error al leer el obra activa:', error)
     return null
   }
 }

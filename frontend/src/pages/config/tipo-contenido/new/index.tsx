@@ -11,8 +11,9 @@ import { useEffect } from 'react'
 import { toast } from 'sonner'
 import type { TipoContenidoResponse, TipoContenidoPayload } from '../view/types'
 import { useNavigate, useSearchParams } from 'react-router-dom'
-import { useApiQuery } from '@/hooks/useApiQuery'
+import { useApiQuery } from '@/hooks/useApiQuery-bueno'
 import type { ApiError } from '@/pages/types/types-comun'
+import { logger } from '@/lib/logger'
 
 const tipoContenidoSchema = z.object({
   nombre: z.string().min(1, 'El nombre es requerido'),
@@ -65,7 +66,7 @@ export default function FormNewTipoContenido() {
         navigate('/config/tipo-contenido/view', { replace: true, state: { refresh: true } })
       },
       onError: error => {
-        console.error('Error al crear el tipo de contenido:', error)
+        logger.error('Error al crear el tipo de contenido:', error)
         const apiError = error as ApiError
         const errorMessage = apiError.response?.data?.message || 'Ha ocurrido un error inesperado'
         toast.error('Error al crear el tipo de contenido', {
@@ -86,7 +87,7 @@ export default function FormNewTipoContenido() {
         navigate('/config/tipo-contenido/view', { replace: true, state: { refresh: true } })
       },
       onError: error => {
-        console.error('Error al actualizar el tipo de contenido:', error)
+        logger.error('Error al actualizar el tipo de contenido:', error)
         const apiError = error as ApiError
         const errorMessage = apiError.response?.data?.message || 'Ha ocurrido un error inesperado'
         toast.error('Error al actualizar el tipo de contenido', {

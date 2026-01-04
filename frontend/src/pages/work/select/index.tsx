@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom'
-import { useApiQuerySimple } from '@/hooks/useApiQuery'
+import { useApiQuerySimple } from '@/hooks/useApiQuery-bueno'
 import { useWork } from '@/context/WorkContext'
 import { useAuth } from '@/context/AuthContext'
 import { Button } from '@/components/ui/button'

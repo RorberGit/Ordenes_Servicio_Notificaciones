@@ -14,7 +14,7 @@ import { MultiSelectFormField } from '@/components/form-fields/MultiSelectFormFi
 import { CheckboxFormField } from '@/components/form-fields/CheckboxFormField'
 
 import { useUpdateRecord } from '@/hooks/useApiMutation'
-import { useApiQuery } from '@/hooks/useApiQuery'
+import { useApiQuery } from '@/hooks/useApiQuery-bueno'
 
 import type { UsuarioResponse, UsuarioPayload, Rol } from '../view/types'
 import type { ApiError } from '@/pages/types/types-comun'
@@ -28,6 +28,7 @@ const usuarioSchema = z.object({
   active: z.boolean(),
   rol: z.string().min(1, 'El rol es requerido'),
   obras_permitidas: z.array(z.string()),
+  unidad: z.string().min(1, 'La unidad es requerida'),
 })
 
 type UsuarioFormData = z.infer<typeof usuarioSchema>
@@ -36,6 +37,8 @@ export default function FormEditUsuario() {
   const navigate = useNavigate()
   const { id } = useParams<{ id: string }>()
   const isEditing = Boolean(id)
+
+  console.log(id)
 
   // --- Formulario ---
   const form = useForm<UsuarioFormData>({
@@ -48,6 +51,7 @@ export default function FormEditUsuario() {
       active: false,
       rol: '',
       obras_permitidas: [],
+      unidad: '',
     },
   })
 
@@ -71,6 +75,14 @@ export default function FormEditUsuario() {
     refetchOnMount: 'always',
   })
 
+  const { data: unidadesData, isLoading: isLoadingUnidades } = useApiQuery<
+    { id: string; cod: string; descripcion?: string }[]
+  >({
+    url: '/unidad/getall/',
+    queryKey: ['unidades'],
+    refetchOnMount: 'always',
+  })
+
   // --- Opciones memoizadas ---
   const rolesOptions = useMemo(
     () => rolesData?.data?.map(r => ({ value: r.id, label: r.nombre })) || [],
@@ -82,11 +94,20 @@ export default function FormEditUsuario() {
     [obrasData],
   )
 
+  const unidadesOptions = useMemo(
+    () =>
+      unidadesData?.data?.map(u => ({
+        value: u.id,
+        label: u.descripcion ? `${u.cod} - ${u.descripcion}` : u.cod,
+      })) || [],
+    [unidadesData],
+  )
+
   // --- Cargar datos del usuario al editar ---
   useEffect(() => {
     if (!isEditing) return
     if (!usuarioData?.data) return
-    if (!rolesData?.data?.length || !obrasData?.data?.length) return
+    if (!rolesData?.data?.length || !obrasData?.data?.length || !unidadesData?.data?.length) return
 
     const u = usuarioData.data
     const obrasPermitidasIds = (u.obras_permitidas || []).map(op => op.id || '')
@@ -100,9 +121,10 @@ export default function FormEditUsuario() {
         active: !!u.active,
         rol: u.rol || '',
         obras_permitidas: obrasPermitidasIds,
+        unidad: u.unidad ? u.unidad.id : '',
       })
     }, 100)
-  }, [isEditing, usuarioData, rolesData, obrasData, form])
+  }, [isEditing, usuarioData, rolesData, obrasData, unidadesData, form])
 
   // --- Mutación ---
   const updateUsuarioMutation = useUpdateRecord<UsuarioResponse, UsuarioPayload>(
@@ -132,12 +154,13 @@ export default function FormEditUsuario() {
       active: values.active,
       rol: values.rol,
       obras_permitidas: values.obras_permitidas,
+      unidad: values.unidad,
     }
     updateUsuarioMutation.mutate(dataToSend)
   }
 
   // --- Estado de carga ---
-  const isLoading = isLoadingUsuario || isLoadingRoles || isLoadingObras
+  const isLoading = isLoadingUsuario || isLoadingRoles || isLoadingObras || isLoadingUnidades
 
   if (isLoading) {
     return (
@@ -187,6 +210,14 @@ export default function FormEditUsuario() {
                 label='Email'
                 placeholder='Ingrese el email'
                 type='email'
+              />
+
+              <SelectFormField
+                control={form.control}
+                name='unidad'
+                label='Unidad'
+                placeholder='Seleccione una unidad'
+                options={unidadesOptions}
               />
 
               <SelectFormField

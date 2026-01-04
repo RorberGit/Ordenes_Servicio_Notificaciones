@@ -1,6 +1,6 @@
 import { useParams } from 'react-router-dom'
 import { Skeleton } from '@/components/ui/skeleton'
-import { useApiQuery } from '@/hooks/useApiQuery'
+import { useApiQuery } from '@/hooks/useApiQuery-bueno'
 import { useNavigate } from 'react-router-dom'
 import type { ServiceOrder } from '../types'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -14,11 +14,14 @@ import ButtonCancelar from './components/button-cancelar'
 import TiempoTrascurrido from './components/tiempo-trascurrido'
 import dayjs from 'dayjs'
 import { useAuth } from '@/context/AuthContext'
+import { useEffect, useState } from 'react'
 
 export default function ServiceOrderDetails() {
   const { id } = useParams<{ id: string }>()
 
   const navigate = useNavigate()
+
+  const [currentUserId, setCurrentUserId] = useState('')
   const { user } = useAuth()
 
   const {
@@ -28,12 +31,42 @@ export default function ServiceOrderDetails() {
     refetch,
   } = useApiQuery<ServiceOrder>({
     url: `/ordenes/getone?id=${id}`,
+    refetchOnMount: 'always',
   })
 
+  interface Usuario {
+    id: string
+    username: string
+    fullname: string
+  }
+
+  // * API Usuarios
+  const { data: usuarioData } = useApiQuery<Usuario[]>({
+    url: '/usuarios/users/',
+    queryKey: ['usuarios'],
+  })
+
+  // Poner el usuario actual desde el context
+  useEffect(() => {
+    if (user && usuarioData?.data) {
+      const currentUser = usuarioData.data.find(u => u.username === user.username)
+      if (currentUser) {
+        setCurrentUserId(`${currentUser.fullname} (${currentUser.username})`)
+      }
+    }
+  }, [user, usuarioData])
+
+  // Datos de las ordenes de servicio
   const serviceOrder = serviceOrderData?.data
 
   // * Constante para el control del Historico
   const historicos = serviceOrder?.historicos ?? []
+
+  // Encontrar el user_id del creador (estado_id == 1)
+  const creatorUserId = historicos.find(h => h.estado === 'Creada')?.user
+
+  // Verificar si el usuario puede completar
+  const canComplete = user?.rol === 'A.Juridico' || currentUserId === creatorUserId
 
   if (isLoading) {
     return (
@@ -155,13 +188,12 @@ export default function ServiceOrderDetails() {
           {serviceOrder?.estado_nombre === 'Creada' && user?.rol === 'A.Juridico' && (
             <ButtonEjecutar id={id} refetch={refetch} />
           )}
-          {serviceOrder?.estado_nombre === 'En Progreso' && (
+          {serviceOrder?.estado_nombre === 'En Progreso' && canComplete && (
             <ButtonCompletar id={id} refetch={refetch} />
           )}
           {serviceOrder.estado_nombre !== 'Completada' &&
-            serviceOrder.estado_nombre !== 'Cancelada' && (
-              <ButtonCancelar id={id} refetch={refetch} />
-            )}
+            serviceOrder.estado_nombre !== 'Cancelada' &&
+            canComplete && <ButtonCancelar id={id} refetch={refetch} />}
         </div>
         {/* Componente historico */}
         <HistoricosComp historicos={historicos} />

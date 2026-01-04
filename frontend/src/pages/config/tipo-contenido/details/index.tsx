@@ -1,6 +1,6 @@
 import { useParams } from 'react-router-dom'
 import { Skeleton } from '@/components/ui/skeleton'
-import { useApiQuery } from '@/hooks/useApiQuery'
+import { useApiQuery } from '@/hooks/useApiQuery-bueno'
 import { useNavigate } from 'react-router-dom'
 import type { TipoContenidoResponse } from '../view/types'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -19,6 +19,7 @@ export default function TipoContenidoDetails() {
     refetch,
   } = useApiQuery<TipoContenidoResponse>({
     url: `/tipos-contenido/getone?id=${id}`,
+    refetchOnMount: 'always',
   })
 
   const tipoContenido = tipoContenidoData?.data
