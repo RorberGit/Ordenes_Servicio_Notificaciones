@@ -1,6 +1,7 @@
 from rest_framework import serializers
 
 from apps.obra.serializers.obra import ObraSerializer
+from rega.unidad.serializers import UnidadSerializer
 
 from ..models import Usuarios
 
@@ -37,6 +38,8 @@ class UsuarioReadSerializer(serializers.ModelSerializer):
         source='obra_principal.nombre', read_only=True)
     obras_permitidas = ObraSerializer(
         many=True, read_only=True)
+    unidad = UnidadSerializer(
+        read_only=True)
 
     class Meta:
         model = Usuarios

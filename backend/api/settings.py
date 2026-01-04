@@ -9,6 +9,7 @@ https://docs.djangoproject.com/en/5.2/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.2/ref/settings/
 """
+import os
 
 from pathlib import Path
 # import os
@@ -49,6 +50,7 @@ INSTALLED_APPS = [
 
     'rest_framework',
     'rest_framework_simplejwt.token_blacklist',
+    'simple_history',
 
     'corsheaders',
 
@@ -63,7 +65,13 @@ INSTALLED_APPS = [
     "apps.especialidades",
     "apps.obra",
     "apps.usuarios",
-    "apps.administrar"
+    "apps.administrar",
+
+    # Rega
+    "rega.procedencia_destino",
+    "rega.tipo_documento",
+    "rega.unidad",
+    "rega.registro",
 ]
 
 CORS_ALLOWED_ORIGINS = [
@@ -81,6 +89,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'simple_history.middleware.HistoryRequestMiddleware',
 ]
 
 ROOT_URLCONF = 'api.urls'
@@ -157,6 +166,13 @@ STATIC_URL = 'static/'
 
 # os.path.join(BASE_DIR, 'staticfiles')
 STATIC_ROOT = 'static/'
+
+# Configuracón para determinar la carpeta donde estaran los archivos en el proyecto
+# ruta pública
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(
+    # ruta interna en disco
+    BASE_DIR, 'media')
 
 # --------------------------------------------------
 # 1. Configuración de JWT (SimpleJWT)

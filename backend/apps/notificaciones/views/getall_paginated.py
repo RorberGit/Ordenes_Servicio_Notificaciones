@@ -39,8 +39,6 @@ class NotificacionGetAllPaginatedView(ListAPIView):
         hoy = timezone.localtime(
             timezone.now()).date()
 
-        print(hoy)
-
         if filtro == 'vencidas':
             # Órdenes con fecha_notificacion pasada de 10 días (más de 10 días)
             fecha_limite = hoy - \

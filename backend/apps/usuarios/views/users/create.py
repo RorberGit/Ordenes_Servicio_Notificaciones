@@ -7,7 +7,8 @@ from utils.responses import ApiResponse
 
 class CreateUserView(APIView):
     def post(self, request):
-        serializer = UserSerializer(data=request.data)
+        serializer = UserSerializer(
+            data=request.data)
         if serializer.is_valid():
             serializer.save()
             api_response = ApiResponse(

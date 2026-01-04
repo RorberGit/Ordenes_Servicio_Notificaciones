@@ -29,8 +29,6 @@ class LoginView(APIView):
         password = request.data.get(
             "password")
 
-        print(username)
-
         if not username or not password:
             return Response({"detail": "Credenciales requeridas."},
                             status=status.HTTP_400_BAD_REQUEST)

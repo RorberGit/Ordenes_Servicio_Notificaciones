@@ -5,6 +5,7 @@ from django.db import models
 from django.utils import timezone
 
 from apps.obra.models import Obra
+from rega.unidad.models import Unidad
 from template.models import FieldsTemplate
 
 
@@ -124,6 +125,15 @@ class Usuarios(AbstractBaseUser, PermissionsMixin):
         related_name='usuarios_permitidos',
         verbose_name="Obras Permitidas",
         help_text="Obras a las que el usuario tiene acceso"
+    )
+
+    unidad = models.ForeignKey(
+        Unidad,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        verbose_name="Unidad",
+        help_text="Unidad a la que pertenece el usuario"
     )
 
     objects = UsuariosManager()
