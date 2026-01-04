@@ -1,12 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { useForm } from 'react-hook-form'
-import { ZodResolverRega, type ZodSchemaTypeRega } from '../lib/ZodSchema'
-import { defaultValues } from '../types'
 import { useSearchParams } from 'react-router-dom'
 import { useQueryRega } from '../hooks/use-QueryRega'
 import FormBodyRega from './Components/form-body'
-import useInsertEdit from '../hooks/use-InsertEdit'
-import { regaSubmit } from '../utils/rega-Submit'
 
 export default function FormInsertUpdateRega() {
   const [searchParams] = useSearchParams()
@@ -14,37 +9,8 @@ export default function FormInsertUpdateRega() {
 
   const isEditing = !!RegaId
 
-  const form = useForm<ZodSchemaTypeRega>({
-    resolver: ZodResolverRega,
-    defaultValues: defaultValues,
-  })
-
   // ✅ Obtener datos del usuario y la unidad
-  const {
-    regaData,
-    isLoadingRega,
-    regaError,
-    usuario,
-    unidad,
-    procedenciaDestinoData,
-    isLoadingProcedenciaDestino,
-    procedenciaDestinoError,
-    tipoDocumentoData,
-    isLoadingTipoDocumento,
-    tipoDocumentoError,
-  } = useQueryRega(form, RegaId)
-
-  // ➕ Hook para crear y actualizar el registro
-  const { createRegaMutation, updateRegaMutation } = useInsertEdit(form, RegaId)
-
-  // Función onSubmit del formulario
-  const onSubmit = regaSubmit({
-    isEditing,
-    unidad,
-    usuario,
-    createRegaMutation,
-    updateRegaMutation,
-  })
+  const { regaData, isLoadingRega, regaError } = useQueryRega(RegaId)
 
   if (isLoadingRega && isEditing) {
     return (
@@ -86,17 +52,7 @@ export default function FormInsertUpdateRega() {
         </CardTitle>
       </CardHeader>
       <CardContent>
-        <FormBodyRega
-          form={form}
-          onSubmit={onSubmit}
-          ProcesMutation={isEditing ? updateRegaMutation.isPending : createRegaMutation.isPending}
-          procedenciaDestinoData={procedenciaDestinoData}
-          isLoadingProcedenciaDestino={isLoadingProcedenciaDestino}
-          procedenciaDestinoError={procedenciaDestinoError}
-          tipoDocumentoData={tipoDocumentoData}
-          isLoadingTipoDocumento={isLoadingTipoDocumento}
-          tipoDocumentoError={tipoDocumentoError}
-        />
+        <FormBodyRega RegaId={RegaId} />
       </CardContent>
     </Card>
   )

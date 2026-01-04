@@ -1,14 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useApiQuery } from '@/hooks/useApiQuery-bueno'
 import { toast } from 'sonner'
-import type {
-  ProcedenciaDestino,
-  RegistroOne,
-  TipoDocumento,
-  Unidad,
-  useFormReg,
-  Usuario,
-} from '../types'
+import type { ProcedenciaDestino, RegistroOne, TipoDocumento, Unidad, Usuario } from '../types'
 import { useAuth } from '@/context/AuthContext'
 
 type ProcedenciaDestinoResponse = ProcedenciaDestino[]
@@ -16,7 +9,7 @@ type TipoDocumentoResponse = TipoDocumento[]
 type UnidadResponse = Unidad[]
 type UsuarioResponse = Usuario[]
 
-export function useQueryRega(form?: useFormReg, RegaId?: string | null) {
+export function useQueryRega(RegaId?: string | null) {
   const { user } = useAuth()
 
   const ID = RegaId ? RegaId : ''
@@ -33,27 +26,7 @@ export function useQueryRega(form?: useFormReg, RegaId?: string | null) {
     url: `/registros/getone?id=${ID}`,
     queryKey: ['rega', ID],
     enabled: !!RegaId,
-    refetchOnMount: 'always',
   })
-
-  // Cargar datos del registro para editar
-  useEffect(() => {
-    const isEditing = !!RegaId
-
-    if (isEditing && regaData?.data && form) {
-      const registro = regaData?.data.registro_actual
-
-      setTimeout(() => {
-        form.reset({
-          descripcion: registro.descripcion || '',
-          entrada_salida: registro.ent_sal || 'R/S',
-          procedencia_destino_id: registro.procedencia_destino?.id || '',
-          tipo_documento_id: registro.tipo_documento?.id || '',
-          archivo: undefined, // No cargamos el archivo existente, solo permitimos cambiarlo
-        })
-      }, 100)
-    }
-  }, [regaData, form, RegaId])
 
   // * API Procedencia Destino
   const {

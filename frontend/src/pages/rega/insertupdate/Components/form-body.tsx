@@ -5,40 +5,56 @@ import { FileUploadFormField } from '@/components/form-fields/FileUploadFormFiel
 import { SelectFormField } from '@/components/form-fields/SelectFormField'
 import { TextareaFormField } from '@/components/form-fields/TextareaFormField'
 import { Form } from '@/components/ui/form'
-import type { ZodSchemaTypeRega } from '../../lib/ZodSchema'
+import { ZodResolverRega, type ZodSchemaTypeRega } from '../../lib/ZodSchema'
 import { Button } from '@/components/ui/button'
-import type { ProcedenciaDestino, TipoDocumento, useFormReg } from '../../types'
-import type { ApiResponse } from '@/services/apiClient'
-
-type ProcedenciaDestinoResponse = ProcedenciaDestino[]
-
-type TipoDocumentoResponse = TipoDocumento[]
+import { defaultValues } from '../../types'
+import { useForm } from 'react-hook-form'
+import useInsertEdit from '../../hooks/use-InsertEdit'
+import { regaSubmit } from '../../utils/rega-Submit'
+import { useQueryRega } from '../../hooks/use-QueryRega'
 
 interface Props {
-  form: useFormReg
-  onSubmit: (values: ZodSchemaTypeRega) => void
-  ProcesMutation: boolean
-
-  procedenciaDestinoData: ApiResponse<ProcedenciaDestinoResponse> | undefined
-  isLoadingProcedenciaDestino: boolean
-  procedenciaDestinoError: Error | null
-
-  tipoDocumentoData: ApiResponse<TipoDocumentoResponse> | undefined
-  isLoadingTipoDocumento: boolean
-  tipoDocumentoError: Error | null
+  RegaId: string | null
 }
 
-export default function FormBodyRega({
-  form,
-  onSubmit,
-  ProcesMutation,
-  procedenciaDestinoData,
-  isLoadingProcedenciaDestino,
-  procedenciaDestinoError,
-  tipoDocumentoData,
-  isLoadingTipoDocumento,
-  tipoDocumentoError,
-}: Props) {
+export default function FormBodyRega({ RegaId }: Props) {
+  // * En edision o nuevo registro
+  const isEditing = !!RegaId
+
+  // 📋 Implementación del formulaeio
+  const form = useForm<ZodSchemaTypeRega>({
+    resolver: ZodResolverRega,
+    defaultValues: defaultValues,
+  })
+
+  // ✅ Obtener datos del usuario y la unidad
+  const {
+    regaData,
+    usuario,
+    unidad,
+    procedenciaDestinoData,
+    isLoadingProcedenciaDestino,
+    procedenciaDestinoError,
+    tipoDocumentoData,
+    isLoadingTipoDocumento,
+    tipoDocumentoError,
+  } = useQueryRega(RegaId)
+
+  // ➕ Hook para crear y actualizar el registro
+  const { createRegaMutation, updateRegaMutation } = useInsertEdit(form, RegaId, regaData)
+
+  // Controla el submit del formulario
+  const pending = isEditing ? updateRegaMutation.isPending : createRegaMutation.isPending
+
+  // Función onSubmit del formulario
+  const onSubmit = regaSubmit({
+    isEditing: isEditing,
+    unidad,
+    usuario,
+    createRegaMutation,
+    updateRegaMutation,
+  })
+
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className='space-y-4'>
@@ -113,12 +129,8 @@ export default function FormBodyRega({
 
         {/* Botones */}
         <div className='flex justify-end space-x-2 pt-4'>
-          <Button
-            type='submit'
-            className='bg-green-700 hover:bg-green-500'
-            disabled={ProcesMutation}
-          >
-            {ProcesMutation ? 'Enviando...' : 'Aceptar'}
+          <Button type='submit' className='bg-green-700 hover:bg-green-500' disabled={pending}>
+            {pending ? 'Enviando...' : 'Aceptar'}
           </Button>
         </div>
       </form>
