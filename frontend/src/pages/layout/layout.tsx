@@ -8,8 +8,6 @@ import { useAuth } from '@/context/AuthContext'
 export default function Layout() {
   const { user } = useAuth()
 
-  console.log('usuario', !!user)
-
   // Filtrar menú basado en el rol del usuario
   const filteredMenu = menu.filter(item => {
     if (item.title === 'Operaciones') {
@@ -43,8 +41,10 @@ export default function Layout() {
       </main>
 
       {/* FOOTER: Fijo y siempre visible (no se desplaza) */}
-      <footer className='bg-muted text-muted-foreground flex h-12 flex-shrink-0 items-center justify-center border-t text-center text-xs'>
-        <p>&copy; 2025 Plataforma digital ALMEST | Desarrollado en UBI-RA.</p>
+      <footer className='bg-muted text-muted-foreground sticky bottom-0 z-50 flex h-12 flex-shrink-0 items-center justify-center border-t text-center text-xs'>
+        <span>
+          <p>&copy; 2025 Plataforma digital ALMEST | Desarrollado en UBI-RA.</p>
+        </span>
       </footer>
     </div>
   )

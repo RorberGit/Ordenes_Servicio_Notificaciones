@@ -7,17 +7,18 @@ import type { PaginatedResponse } from '../types'
 import PaginatedButton from '@/pages/components/paginated-button'
 import { getColumns } from '../lib/columns'
 import DataTable from '@/pages/components/data-table'
+import useParams from '@/pages/hooks/use-params'
 
 export default function ViewNotificaciones() {
   const location = useLocation()
   const navigate = useNavigate()
 
-  const [searchParams, setSearchParams] = useSearchParams()
+  const [searchParams] = useSearchParams()
 
   const initialPage = Number(searchParams.get('page')) || 1
   const [currentPage, setCurrentPage] = useState(initialPage)
 
-  const params: Record<string, string | number> = { page: currentPage }
+  const params = useParams(currentPage)
 
   const {
     data: notificacionesData,
@@ -27,14 +28,6 @@ export default function ViewNotificaciones() {
     url: '/notificaciones/getall-paginated',
     params,
   })
-
-  useEffect(() => {
-    setSearchParams(prev => {
-      const newParams = new URLSearchParams(prev)
-      newParams.set('page', String(currentPage))
-      return newParams
-    })
-  }, [currentPage, setSearchParams])
 
   // 👇 Este efecto detecta si se navegó con el flag refresh
   useEffect(() => {

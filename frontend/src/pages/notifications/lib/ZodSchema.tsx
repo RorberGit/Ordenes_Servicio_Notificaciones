@@ -5,8 +5,8 @@ import { zodResolver } from '@hookform/resolvers/zod'
 
 const ZodSchemaNotification = z
   .object({
-    numero_notificacion: z.coerce.number().refine(val => val.toString().length >= 4, {
-      message: 'Debe ser un número no menor de 4 digitos',
+    numero_notificacion: z.coerce.number().refine(val => val.toString().length >= 3, {
+      message: 'Debe ser un número no menor de 3 digitos',
     }),
     asunto: z.string().refine(val => val.length > 0, 'Este campo es requerido'),
     lleva_respuesta: z.boolean().optional(),

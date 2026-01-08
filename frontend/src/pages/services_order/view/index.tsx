@@ -7,35 +7,27 @@ import type { PaginatedResponse } from '../types'
 import PaginatedButton from '@/pages/components/paginated-button'
 import { getColumns } from '../lib/columns'
 import DataTable from '@/pages/components/data-table'
+import useParams from '../../hooks/use-params'
 
 export default function ViewServiceOrders() {
   const location = useLocation()
-  const [searchParams, setSearchParams] = useSearchParams()
+  const [searchParams] = useSearchParams()
 
   const initialPage = Number(searchParams.get('page')) || 1
   const [currentPage, setCurrentPage] = useState(initialPage)
 
   const navigate = useNavigate()
 
-  const params: Record<string, string | number> = { page: currentPage }
+  const params = useParams(currentPage)
 
   const {
     data: serviceOrdersData,
     isLoading,
     refetch,
   } = useApiQuery<PaginatedResponse>({
-    url: '/ordenes/getall-paginated/',
+    url: '/ordenes/getall-paginated',
     params,
   })
-
-  // 👇 Modifica y almacena los parametros en la URL
-  useEffect(() => {
-    setSearchParams(prev => {
-      const newParams = new URLSearchParams(prev)
-      newParams.set('page', String(currentPage))
-      return newParams
-    })
-  }, [currentPage, setSearchParams])
 
   // 👇 Este efecto detecta si se navegó con el flag refresh
   useEffect(() => {
