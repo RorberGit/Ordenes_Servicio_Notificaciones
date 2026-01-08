@@ -2,6 +2,7 @@ class ApiResponse:
     """
     Clase para estandarizar las respuestas de la API.
     """
+
     def __init__(self, success=True, message="", data=None, status_code=200):
         self.success = success
         self.message = message
