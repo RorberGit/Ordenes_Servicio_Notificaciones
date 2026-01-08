@@ -9,7 +9,7 @@ from apps.notificaciones.views.update import NotificacionUpdateView
 urlpatterns = [
     path("getall/",
          NotificacionGetAllView.as_view(), name="Obtener todas las notificaciones"),
-    path("getall-paginated/",
+    path("getall-paginated",
          NotificacionGetAllPaginatedView.as_view(), name="Obtener todas las notificaciones paginadas"),
     path("getone/",
          NotificacionGetOneView.as_view(), name="Obtener una notificación"),

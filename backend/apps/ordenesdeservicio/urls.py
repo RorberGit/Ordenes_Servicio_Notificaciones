@@ -15,7 +15,7 @@ urlpatterns = [
          OrdenesServicioGetOneView.as_view(), name="Obtener un registro"),
     path("getall/",
          OrdenesServicioGetAllView.as_view(), name="Obtener todos los registros"),
-    path("getall-paginated/", OrdenesServicioGetAllPaginatedView.as_view(),
+    path("getall-paginated", OrdenesServicioGetAllPaginatedView.as_view(),
          name="Todo con paginación")
 
 ]
