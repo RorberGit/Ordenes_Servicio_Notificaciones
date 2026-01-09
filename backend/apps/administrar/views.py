@@ -5,7 +5,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.conf import settings
-# from django.contrib.auth import authenticate
+from django.contrib.auth import authenticate
 
 from .utils import authenticate_ldap_user
 
@@ -34,7 +34,33 @@ class LoginView(APIView):
             return Response({"detail": "Credenciales requeridas."},
                             status=status.HTTP_400_BAD_REQUEST)
 
-        # 1. Autenticación contra Active Directory/LDAP
+        # Verificar si el usuario es 'admin' y existe en PostgreSQL
+        if username == 'admin':
+            try:
+                user = Usuarios.objects.get(
+                    username=username)
+                # Autenticación solo en PostgreSQL para admin
+                user_auth = authenticate(
+                    username=username, password=password)
+                if user_auth and user_auth.active:
+                    # Generar JWT
+                    refresh = RefreshToken.for_user(
+                        user_auth)
+                    user_data = UsuarioReadSerializer(
+                        user_auth).data
+                    return Response({
+                        'access_token': str(refresh.access_token),
+                        'refresh_token': str(refresh),
+                        'user': user_data,
+                    }, status=status.HTTP_200_OK)
+                else:
+                    return Response({"detail": "Credenciales incorrectas o usuario no autorizado."},
+                                    status=status.HTTP_401_UNAUTHORIZED)
+            except Usuarios.DoesNotExist:
+                return Response({"detail": "Usuario no encontrado."},
+                                status=status.HTTP_404_NOT_FOUND)
+
+        # 1. Autenticación contra Active Directory/LDAP para usuarios no admin
         ldap_result = authenticate_ldap_user(
             username, password)
 
