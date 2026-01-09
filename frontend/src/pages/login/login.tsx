@@ -51,6 +51,7 @@ export default function Login() {
       }
     }
 
+    // Si el login fue exitoso
     if (isSuccess && data) {
       toast.success('Login exitoso')
       logger.info('Login data:', JSON.stringify(data, null, 2))

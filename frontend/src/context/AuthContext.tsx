@@ -30,15 +30,26 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   // Función para manejar el login (se llama después de la autenticación exitosa)
   const login = (userData: UserData, tokens: Tokens) => {
-    const data: UserContext = {
-      username: userData.username,
-      fullname: userData.fullname,
-      obra_principal: userData.obra_principal_nombre,
-      email: userData.email,
-      rol: userData.rol_nombre,
-      unidad: userData.unidad.descripcion,
-      obras_permitidas: userData.obras_permitidas?.map(obra => obra.nombre),
-    }
+    const data: UserContext =
+      userData.username === 'admin'
+        ? {
+            username: 'admin',
+            fullname: 'Administrador',
+            obra_principal: 'admin',
+            email: 'admin@administracion.local',
+            rol: 'Administrador',
+            unidad: 'admin',
+            obras_permitidas: ['admin'],
+          }
+        : {
+            username: userData.username,
+            fullname: userData.fullname,
+            obra_principal: userData.obra_principal_nombre,
+            email: userData.email,
+            rol: userData.rol_nombre,
+            unidad: userData.unidad.descripcion,
+            obras_permitidas: userData.obras_permitidas?.map(obra => obra.nombre),
+          }
 
     setUser(data)
     // Almacenar tokens
