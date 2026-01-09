@@ -1,22 +1,11 @@
-from django.db.models import Q
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status, permissions
-from rest_framework.pagination import PageNumberPagination
-from django.utils import timezone
-from datetime import timedelta
 
 from apps.ordenesdeservicio.models.ordenesservico import OrdenesServicio
 from apps.ordenesdeservicio.serializers.ordenesservicio import OrdenesServicioReadSerializer
-from utils.responses import ApiResponse
-from utils.paginated_response import build_paginated_response
-
-
-class OrdenesServicioPagination(PageNumberPagination):
-    # Número de registros por página
-    page_size = 10
-    page_size_query_param = 'page_size'
-    max_page_size = 100
+from utils import ApiResponse, build_paginated_response
+from apps.helpers import Filters, Pagination
 
 
 class OrdenesServicioGetAllPaginatedView(APIView):
@@ -37,54 +26,11 @@ class OrdenesServicioGetAllPaginatedView(APIView):
             Sobrescribe el método get para mantener la respuesta estandarizada con paginación
         '''
         try:
-            """ queryset = OrdenesServicio.objects.all(
-            ).order_by("-created_at") """
-
-            query = Q()
-
-            # Recuperar estado
-            estado = request.query_params.get(
-                'estado', None)
-            # Si estado existe
-            if estado is not None:
-                hoy = timezone.localtime(
-                    timezone.now()).date()
-
-                if estado == 'vencidas':
-                    # Órdenes con fecha_notificacion pasada de 10 días (más de 10 días)
-                    fecha_limite = hoy - \
-                        timedelta(
-                            days=10)
-                    query &= Q(
-                        fecha_notificacion__lt=fecha_limite, fecha_notificacion__isnull=False)
-                    # Si están en progreso
-                    query &= Q(
-                        estado_id__exact=2)
-                elif estado == 'proximas':
-                    # Órdenes próximas a vencerse: 3 días antes de los 10 días (entre 7 y 10 días atrás)
-                    fecha_inicio = hoy - \
-                        timedelta(
-                            days=10)
-                    fecha_fin = hoy - \
-                        timedelta(
-                            days=7)
-                    query = Q(
-                        fecha_notificacion__range=(
-                            fecha_inicio, fecha_fin),
-                        fecha_notificacion__isnull=False
-                    )
-                    # Si están en progreso
-                    query &= Q(
-                        estado_id__exact=2)
-                else:
-                    query &= Q(
-                        estado_id__exact=estado)
-
             # Recuperar todos los registros
             queryset = OrdenesServicio.objects.filter(
-                query).order_by("-created_at")
+                Filters(request)).order_by("-created_at")
 
-            paginator = OrdenesServicioPagination()
+            paginator = Pagination()
             page = paginator.paginate_queryset(
                 queryset, request)
 
