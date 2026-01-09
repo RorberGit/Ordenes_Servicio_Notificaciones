@@ -21,6 +21,7 @@
 - `git status` → Ver qué archivos han cambiado  
 - `git add .` → Añadir todos los cambios  
 - `git add archivo` → Añadir un archivo específico  
+- `git add frontend/` → Añadir solo los cambios en la carpeta frontend  
 - `git commit -m "mensaje"` → Guardar los cambios en la rama local  
 - `git push -u origin rama` → Subir rama nueva a GitHub  
 - `git push` → Subir commits a la rama ya enlazada  

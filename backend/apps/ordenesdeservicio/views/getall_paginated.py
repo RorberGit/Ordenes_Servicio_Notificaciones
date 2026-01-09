@@ -19,7 +19,7 @@ class OrdenesServicioGetAllPaginatedView(APIView):
     serializer_class = OrdenesServicioReadSerializer
     # pagination_class = OrdenesServicioPagination
     permission_classes = [
-        permissions.AllowAny]
+        permissions.IsAuthenticated]
 
     def get(self, request):
         '''
